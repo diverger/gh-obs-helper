@@ -14,6 +14,10 @@ async function main(): Promise<void> {
       throw new Error(`Local path is required for ${inputs.operation} operation`);
     }
 
+    if (['download', 'sync'].includes(inputs.operation) && !inputs.obsPath) {
+      throw new Error(`OBS path is required for ${inputs.operation} operation`);
+    }
+
     // Create OBS manager and execute operation
     obsManager = new OBSManager(inputs);
     const result = await obsManager.execute();

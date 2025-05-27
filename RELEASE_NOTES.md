@@ -1,4 +1,57 @@
-# Release Notes Example
+# Release Notes
+
+## 🚀 GH OBS Helper Release v1.1.0
+
+### 🎯 What's New
+
+- **📥 Download Functionality**: Full download support with pattern matching and parallel processing
+- **🔍 Advanced Object Listing**: Efficient pagination for large buckets
+- **🎯 Pattern Filtering**: Include/exclude patterns for downloads
+- **📁 Structure Preservation**: Option to maintain directory structure during downloads
+- **🛡️ Checksum Validation**: File integrity verification for downloads
+
+### 🔧 Features
+
+- **Download Operations**: Download files from OBS buckets with wildcard support
+- **Parallel Downloads**: Configurable concurrency for faster file retrieval
+- **Pattern Matching**: Filter downloads using include/exclude patterns
+- **Retry Logic**: Automatic retry for failed downloads with exponential backoff
+- **Dry Run Support**: Preview download operations without executing
+
+### 📋 Download Examples
+
+**Basic Download:**
+```yaml
+- name: Download files
+  uses: diverger/gh-obs-helper@v1.1.0
+  with:
+    access_key: ${{ secrets.OBS_ACCESS_KEY }}
+    secret_key: ${{ secrets.OBS_SECRET_KEY }}
+    region: 'cn-north-4'
+    bucket_name: 'my-bucket'
+    operation: 'download'
+    obs_path: 'releases/v1.0.0/'
+    local_path: 'downloaded/'
+```
+
+**Download with Patterns:**
+```yaml
+- name: Download specific files
+  uses: diverger/gh-obs-helper@v1.1.0
+  with:
+    access_key: ${{ secrets.OBS_ACCESS_KEY }}
+    secret_key: ${{ secrets.OBS_SECRET_KEY }}
+    region: 'cn-north-4'
+    bucket_name: 'my-bucket'
+    operation: 'download'
+    obs_path: 'backups/'
+    local_path: 'restored/'
+    include: '**/*.sql, **/*.json'
+    exclude: '**/*.tmp'
+    concurrency: 20
+```
+
+---
 
 ## 🚀 GH OBS Helper Release v1.0.0
 

@@ -15,8 +15,8 @@ on:
 
 env:
   OBS_BUCKET: ${{ inputs.bucket || secrets.OBS_BUCKET }}
-  OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
-  OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
+  OBS_ACCESS_KEY: ${{ secrets.OBS_ACCESS_KEY }}
+  OBS_SECRET_KEY: ${{ secrets.OBS_SECRET_KEY }}
 
 jobs:
   quick-upload-test:
@@ -36,8 +36,8 @@ jobs:
       - name: Test file upload
         uses: ./
         with:
-          access_key: ${{ env.OBS_KEY_ID }}
-          secret_key: ${{ env.OBS_KEY_SECRET }}
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
           region: cn-north-4
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload

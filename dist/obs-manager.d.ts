@@ -11,6 +11,12 @@ export declare class OBSManager {
     private performUpload;
     private uploadFile;
     private performDownload;
+    private resolveDownloadOperations;
+    private listOBSObjects;
+    private filterOBSObjects;
+    private matchesPattern;
+    private createDownloadOperation;
+    private downloadFile;
     private performSync;
     private createBucket;
     private deleteBucket;

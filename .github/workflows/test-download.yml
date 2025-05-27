@@ -1,18 +1,8 @@
-name: Test Download Function
+name: Test Download Functionality
 
 on:
   workflow_dispatch:
     inputs:
-      test_scenario:
-        description: 'Download test scenario'
-        required: true
-        default: 'single-file'
-        type: choice
-        options:
-          - single-file
-          - multiple-files
-          - directory
-          - wildcard-download
       bucket:
         description: 'OBS bucket name for testing'
         required: true
@@ -29,33 +19,205 @@ on:
         type: string
 
 env:
-  OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
-  OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
+  OBS_ACCESS_KEY: ${{ secrets.OBS_ACCESS_KEY }}
+  OBS_SECRET_KEY: ${{ secrets.OBS_SECRET_KEY }}
   OBS_REGION: ${{ inputs.region || 'cn-north-4' }}
   OBS_BUCKET: ${{ inputs.bucket }}
 
 jobs:
-  test-download:
+  prepare-test-data:
     runs-on: ubuntu-latest
-    name: Test Download - ${{ inputs.test_scenario }}
+    name: Prepare Test Data
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Prepare download directory
-        run: |
-          mkdir -p downloads
-          echo "Download directory created"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Test Single File Download
+      - name: Install dependencies and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Generate test files
+        run: |
+          chmod +x generate-test-files.sh
+          ./generate-test-files.sh
+
+      - name: Upload test data for download testing
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
+          operation: 'upload'
+          local_path: 'test-files/**/*'
+          obs_path: '${{ inputs.remote_path }}'
+          progress: true
+
+  test-download:
+    needs: prepare-test-data
+    runs-on: ubuntu-latest
+    name: Test Download Operations
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Test basic download
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
+          operation: 'download'
+          obs_path: '${{ inputs.remote_path }}'
+          local_path: 'downloads/basic/'
+          progress: true
+
+      - name: Verify basic download
+        run: |
+          echo "📂 Basic download results:"
+          find downloads/basic/ -type f 2>/dev/null | head -10 || echo "No files found"
+
+      - name: Test download with patterns
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
+          operation: 'download'
+          obs_path: '${{ inputs.remote_path }}'
+          local_path: 'downloads/filtered/'
+          include: '**/*.txt, **/*.json, **/*.md'
+          exclude: '**/*.log'
+          preserve_structure: true
+          progress: true
+
+      - name: Verify filtered download
+        run: |
+          echo "📂 Filtered download results:"
+          find downloads/filtered/ -type f 2>/dev/null | head -10 || echo "No files found"
+
+      - name: Test high-performance download
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
+          operation: 'download'
+          obs_path: '${{ inputs.remote_path }}'
+          local_path: 'downloads/parallel/'
+          concurrency: 20
+          checksum_validation: true
+          progress: true
+
+      - name: Verify parallel download
+        run: |
+          echo "📂 Parallel download results:"
+          find downloads/parallel/ -type f 2>/dev/null | head -10 || echo "No files found"
+
+      - name: Test dry run download
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
+          operation: 'download'
+          obs_path: '${{ inputs.remote_path }}'
+          local_path: 'downloads/dry-run/'
+          dry_run: true
+          progress: true
+
+      - name: Verify dry run (no files should be downloaded)
+        run: |
+          if [ -d "downloads/dry-run" ] && [ "$(find downloads/dry-run -type f | wc -l)" -gt 0 ]; then
+            echo "❌ Dry run failed - files were actually downloaded"
+            exit 1
+          else
+            echo "✅ Dry run successful - no files downloaded"
+          fi
+
+      - name: Test download without structure preservation
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
+          operation: 'download'
+          obs_path: '${{ inputs.remote_path }}'
+          local_path: 'downloads/flat/'
+          preserve_structure: false
+          progress: true
+
+      - name: Verify flat download structure
+        run: |
+          echo "📂 Flat download results:"
+          find downloads/flat/ -type f 2>/dev/null | head -10 || echo "No files found"
+          echo "📏 Directory depth:"
+          find downloads/flat/ -type f -exec dirname {} \; | sort -u | wc -l
+
+      - name: Generate download test summary
+        run: |
+          echo "## 📋 Download Test Summary" > download-summary.md
+          echo "" >> download-summary.md
+          echo "### Test Results" >> download-summary.md
+          echo "" >> download-summary.md
+
+          for dir in downloads/*/; do
+            if [ -d "$dir" ]; then
+              name=$(basename "$dir")
+              count=$(find "$dir" -type f 2>/dev/null | wc -l)
+              echo "- **$name**: $count files downloaded" >> download-summary.md
+            fi
+          done
+
+          echo "" >> download-summary.md
+          echo "### File Details" >> download-summary.md
+          echo "" >> download-summary.md
+          echo "\`\`\`" >> download-summary.md
+          find downloads/ -type f 2>/dev/null | sort >> download-summary.md
+          echo "\`\`\`" >> download-summary.md
+
+          cat download-summary.md
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: download-test-results
+          path: |
+            downloads/
+            download-summary.md
+          retention-days: 7
         if: inputs.test_scenario == 'single-file'
         uses: ./
         with:
-          access_key: ${{ env.OBS_KEY_ID }}
-          secret_key: ${{ env.OBS_KEY_SECRET }}
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
           region: ${{ env.OBS_REGION }}
-          bucket: ${{ env.OBS_BUCKET }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: download
           obs_path: ${{ inputs.remote_path }}simple.txt
           local_path: downloads/
@@ -65,10 +227,10 @@ jobs:
         if: inputs.test_scenario == 'multiple-files'
         uses: ./
         with:
-          access_key: ${{ env.OBS_KEY_ID }}
-          secret_key: ${{ env.OBS_KEY_SECRET }}
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
           region: ${{ env.OBS_REGION }}
-          bucket: ${{ env.OBS_BUCKET }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: download
           obs_path: ${{ inputs.remote_path }}multiple/
           local_path: downloads/multiple/
@@ -79,10 +241,10 @@ jobs:
         if: inputs.test_scenario == 'directory'
         uses: ./
         with:
-          access_key: ${{ env.OBS_KEY_ID }}
-          secret_key: ${{ env.OBS_KEY_SECRET }}
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
           region: ${{ env.OBS_REGION }}
-          bucket: ${{ env.OBS_BUCKET }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: download
           obs_path: ${{ inputs.remote_path }}directory/
           local_path: downloads/directory/

@@ -50705,6 +50705,9 @@ async function main() {
         if (['upload', 'download', 'sync'].includes(inputs.operation) && !inputs.localPath) {
             throw new Error(`Local path is required for ${inputs.operation} operation`);
         }
+        if (['download', 'sync'].includes(inputs.operation) && !inputs.obsPath) {
+            throw new Error(`OBS path is required for ${inputs.operation} operation`);
+        }
         // Create OBS manager and execute operation
         obsManager = new obs_manager_1.OBSManager(inputs);
         const result = await obsManager.execute();
@@ -50772,6 +50775,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OBSManager = void 0;
 const esdk_obs_nodejs_1 = __importDefault(__nccwpck_require__(1728));
 const p_limit_1 = __importDefault(__nccwpck_require__(370));
+const path_1 = __importDefault(__nccwpck_require__(6928));
 const file_manager_1 = __nccwpck_require__(1747);
 const utils_1 = __nccwpck_require__(1798);
 const crypto_1 = __nccwpck_require__(6982);
@@ -50945,16 +50949,219 @@ class OBSManager {
         };
     }
     async performDownload() {
-        // Implementation for download operation
-        (0, utils_1.logProgress)('Download operation not yet implemented', this.inputs.progress);
+        const operations = await this.resolveDownloadOperations();
+        if (this.inputs.dryRun) {
+            (0, utils_1.logProgress)('DRY RUN - No files will be downloaded', this.inputs.progress);
+            operations.forEach(op => {
+                (0, utils_1.logProgress)(`Would download: ${op.remotePath} -> ${op.localPath}`, this.inputs.progress);
+            });
+            return {
+                filesProcessed: operations.length,
+                bytesTransferred: 0,
+                operationTime: 0,
+                successCount: 0,
+                errorCount: 0,
+                fileList: [],
+                errors: []
+            };
+        }
+        const results = [];
+        const errors = [];
+        (0, utils_1.logProgress)(`Downloading ${operations.length} files with ${this.inputs.concurrency} concurrent connections...`, this.inputs.progress);
+        const downloadPromises = operations.map(operation => this.limit(() => this.downloadFile(operation)));
+        const downloadResults = await Promise.allSettled(downloadPromises);
+        downloadResults.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+                results.push(result.value);
+                if (result.value.status === 'success') {
+                    (0, utils_1.logSuccess)(`Downloaded: ${result.value.remotePath} -> ${result.value.localPath}`);
+                }
+                else {
+                    (0, utils_1.logError)(`Failed: ${result.value.remotePath} - ${result.value.error}`);
+                    errors.push(result.value.error || 'Unknown error');
+                }
+            }
+            else {
+                const operation = operations[index];
+                const errorMsg = `Download failed: ${operation.remotePath} - ${result.reason}`;
+                (0, utils_1.logError)(errorMsg);
+                errors.push(errorMsg);
+                results.push({
+                    localPath: operation.localPath,
+                    remotePath: operation.remotePath,
+                    size: operation.size || 0,
+                    status: 'error',
+                    error: result.reason?.toString()
+                });
+            }
+        });
+        const successCount = results.filter(r => r.status === 'success').length;
+        const bytesTransferred = results
+            .filter(r => r.status === 'success')
+            .reduce((total, file) => total + file.size, 0);
         return {
-            filesProcessed: 0,
-            bytesTransferred: 0,
-            operationTime: 0,
-            successCount: 0,
-            errorCount: 0,
-            fileList: [],
-            errors: ['Download operation not implemented']
+            filesProcessed: results.length,
+            bytesTransferred,
+            operationTime: 0, // Will be set by caller
+            successCount,
+            errorCount: results.length - successCount,
+            fileList: results,
+            errors
+        };
+    }
+    async resolveDownloadOperations() {
+        if (!this.inputs.obsPath) {
+            throw new Error('OBS path is required for download operation');
+        }
+        (0, utils_1.logProgress)('Resolving OBS objects to download...', this.inputs.progress);
+        // List objects from OBS
+        const obsObjects = await this.listOBSObjects(this.inputs.obsPath);
+        // Filter objects based on include/exclude patterns
+        const filteredObjects = this.filterOBSObjects(obsObjects);
+        // Convert to download operations
+        const operations = filteredObjects.map(obj => this.createDownloadOperation(obj));
+        (0, utils_1.logProgress)(`Found ${operations.length} objects to download`, this.inputs.progress);
+        return operations;
+    }
+    async listOBSObjects(prefix) {
+        const objects = [];
+        let isTruncated = true;
+        let nextMarker = '';
+        while (isTruncated) {
+            try {
+                const listParams = {
+                    Bucket: this.inputs.bucketName,
+                    Prefix: prefix,
+                    MaxKeys: 1000
+                };
+                if (nextMarker) {
+                    listParams.Marker = nextMarker;
+                }
+                const result = await this.client.listObjects(listParams);
+                if (result.CommonMsg.Status === 200) {
+                    if (result.InterfaceResult.Contents) {
+                        objects.push(...result.InterfaceResult.Contents);
+                    }
+                    isTruncated = result.InterfaceResult.IsTruncated === 'true';
+                    nextMarker = result.InterfaceResult.NextMarker || '';
+                }
+                else {
+                    throw new Error(`Failed to list objects: ${result.CommonMsg.Status}`);
+                }
+            }
+            catch (error) {
+                (0, utils_1.logError)(`Error listing OBS objects: ${error}`);
+                throw error;
+            }
+        }
+        return objects;
+    }
+    filterOBSObjects(objects) {
+        return objects.filter(obj => {
+            const key = obj.Key;
+            // Skip directories (objects ending with /)
+            if (key.endsWith('/')) {
+                return false;
+            }
+            // Apply include patterns
+            if (this.inputs.include && this.inputs.include.length > 0) {
+                const included = this.inputs.include.some(pattern => this.matchesPattern(key, pattern));
+                if (!included)
+                    return false;
+            }
+            // Apply exclude patterns
+            if (this.inputs.exclude && this.inputs.exclude.length > 0) {
+                const excluded = this.inputs.exclude.some(pattern => this.matchesPattern(key, pattern));
+                if (excluded) {
+                    (0, utils_1.logProgress)(`Excluding: ${key}`, this.inputs.progress);
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+    matchesPattern(path, pattern) {
+        // Simple pattern matching implementation
+        // Convert glob pattern to regex
+        const regexPattern = pattern
+            .replace(/\./g, '\\.')
+            .replace(/\*/g, '.*')
+            .replace(/\?/g, '.')
+            .replace(/\*\*/g, '.*');
+        const regex = new RegExp(`^${regexPattern}$`);
+        return regex.test(path);
+    }
+    createDownloadOperation(obsObject) {
+        const remotePath = obsObject.Key;
+        let localPath;
+        if (this.inputs.localPath) {
+            if (this.inputs.preserveStructure) {
+                // Preserve the full OBS path structure
+                localPath = path_1.default.join(this.inputs.localPath, remotePath);
+            }
+            else {
+                // Just use the filename
+                const filename = path_1.default.basename(remotePath);
+                localPath = path_1.default.join(this.inputs.localPath, filename);
+            }
+        }
+        else {
+            // Default to current directory with preserved structure
+            localPath = this.inputs.preserveStructure ? remotePath : path_1.default.basename(remotePath);
+        }
+        return {
+            localPath: path_1.default.normalize(localPath),
+            remotePath,
+            size: parseInt(obsObject.Size) || 0,
+            operation: 'download'
+        };
+    }
+    async downloadFile(operation) {
+        const maxRetries = this.inputs.retryCount;
+        let lastError;
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                if (attempt > 0) {
+                    (0, utils_1.logProgress)(`Retry ${attempt}/${maxRetries}: ${operation.remotePath}`, this.inputs.progress);
+                    await this.delay(1000 * attempt); // Exponential backoff
+                }
+                const downloadParams = {
+                    Bucket: this.inputs.bucketName,
+                    Key: operation.remotePath
+                };
+                const result = await this.client.getObject(downloadParams);
+                if (result.CommonMsg.Status === 200) {
+                    // Write file to local path
+                    await this.fileManager.writeFile(operation.localPath, result.InterfaceResult.Content);
+                    const processedFile = {
+                        localPath: operation.localPath,
+                        remotePath: operation.remotePath,
+                        size: operation.size || Buffer.byteLength(result.InterfaceResult.Content),
+                        status: 'success'
+                    };
+                    // Add checksum if validation is enabled
+                    if (this.inputs.checksumValidation) {
+                        processedFile.checksum = (0, crypto_1.createHash)('md5').update(result.InterfaceResult.Content).digest('hex');
+                    }
+                    return processedFile;
+                }
+                else {
+                    throw new Error(`Download failed with status: ${result.CommonMsg.Status}`);
+                }
+            }
+            catch (error) {
+                lastError = error;
+                if (attempt === maxRetries) {
+                    (0, utils_1.logError)(`Failed after ${maxRetries + 1} attempts: ${operation.remotePath}`);
+                }
+            }
+        }
+        return {
+            localPath: operation.localPath,
+            remotePath: operation.remotePath,
+            size: operation.size || 0,
+            status: 'error',
+            error: lastError?.toString() || 'Unknown error'
         };
     }
     async performSync() {
