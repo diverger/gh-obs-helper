@@ -9,13 +9,13 @@ export class FileManager {
   constructor(private inputs: ActionInputs) {}
 
   async resolveFiles(): Promise<FileOperation[]> {
-    if (!this.inputs.source) {
-      throw new Error('Source path is required for file operations');
+    if (!this.inputs.localPath) {
+      throw new Error('Local path is required for file operations');
     }
 
     logProgress('Resolving file patterns...', this.inputs.progress);
 
-    const sourcePatterns = this.inputs.source.split(',').map(s => s.trim());
+    const sourcePatterns = this.inputs.localPath.split(',').map(s => s.trim());
     const allFiles: string[] = [];
 
     for (const pattern of sourcePatterns) {
@@ -137,7 +137,7 @@ export class FileManager {
   }
 
   private getRemotePath(localPath: string): string {
-    const destination = this.inputs.destination || '';
+    const destination = this.inputs.obsPath || '';
 
     if (!this.inputs.preserveStructure) {
       // Just use filename
@@ -146,13 +146,13 @@ export class FileManager {
     }
 
     // Preserve structure
-    if (this.inputs.source && !this.inputs.source.includes('*')) {
+    if (this.inputs.localPath && !this.inputs.localPath.includes('*')) {
       // Single file or directory source
       try {
-        const sourceStat = require('fs').statSync(this.inputs.source);
+        const sourceStat = require('fs').statSync(this.inputs.localPath);
         if (sourceStat.isDirectory()) {
           // Remove source directory from path and preserve relative structure
-          const relativePath = path.relative(this.inputs.source, localPath);
+          const relativePath = path.relative(this.inputs.localPath, localPath);
           return destination ? path.posix.join(destination, relativePath) : relativePath;
         } else {
           // Single file

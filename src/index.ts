@@ -10,8 +10,8 @@ async function main(): Promise<void> {
     const inputs = getInputs();
 
     // Validate required inputs based on operation
-    if (['upload', 'download', 'sync'].includes(inputs.operation) && !inputs.source) {
-      throw new Error(`Source path is required for ${inputs.operation} operation`);
+    if (['upload', 'download', 'sync'].includes(inputs.operation) && !inputs.localPath) {
+      throw new Error(`Local path is required for ${inputs.operation} operation`);
     }
 
     // Create OBS manager and execute operation

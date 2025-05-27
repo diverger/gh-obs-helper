@@ -4,8 +4,8 @@ export interface ActionInputs {
   region: string;
   bucketName: string;
   operation: 'upload' | 'download' | 'sync' | 'create-bucket' | 'delete-bucket';
-  source?: string;
-  destination?: string;
+  localPath?: string;
+  obsPath?: string;
   include?: string[];
   exclude?: string[];
   preserveStructure: boolean;

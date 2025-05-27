@@ -50488,11 +50488,11 @@ class FileManager {
         this.inputs = inputs;
     }
     async resolveFiles() {
-        if (!this.inputs.source) {
-            throw new Error('Source path is required for file operations');
+        if (!this.inputs.localPath) {
+            throw new Error('Local path is required for file operations');
         }
         (0, utils_1.logProgress)('Resolving file patterns...', this.inputs.progress);
-        const sourcePatterns = this.inputs.source.split(',').map(s => s.trim());
+        const sourcePatterns = this.inputs.localPath.split(',').map(s => s.trim());
         const allFiles = [];
         for (const pattern of sourcePatterns) {
             const files = await this.expandPattern(pattern);
@@ -50598,20 +50598,20 @@ class FileManager {
         }
     }
     getRemotePath(localPath) {
-        const destination = this.inputs.destination || '';
+        const destination = this.inputs.obsPath || '';
         if (!this.inputs.preserveStructure) {
             // Just use filename
             const filename = path_1.default.basename(localPath);
             return destination ? path_1.default.posix.join(destination, filename) : filename;
         }
         // Preserve structure
-        if (this.inputs.source && !this.inputs.source.includes('*')) {
+        if (this.inputs.localPath && !this.inputs.localPath.includes('*')) {
             // Single file or directory source
             try {
-                const sourceStat = (__nccwpck_require__(9896).statSync)(this.inputs.source);
+                const sourceStat = (__nccwpck_require__(9896).statSync)(this.inputs.localPath);
                 if (sourceStat.isDirectory()) {
                     // Remove source directory from path and preserve relative structure
-                    const relativePath = path_1.default.relative(this.inputs.source, localPath);
+                    const relativePath = path_1.default.relative(this.inputs.localPath, localPath);
                     return destination ? path_1.default.posix.join(destination, relativePath) : relativePath;
                 }
                 else {
@@ -50702,8 +50702,8 @@ async function main() {
         // Get and validate inputs
         const inputs = (0, utils_1.getInputs)();
         // Validate required inputs based on operation
-        if (['upload', 'download', 'sync'].includes(inputs.operation) && !inputs.source) {
-            throw new Error(`Source path is required for ${inputs.operation} operation`);
+        if (['upload', 'download', 'sync'].includes(inputs.operation) && !inputs.localPath) {
+            throw new Error(`Local path is required for ${inputs.operation} operation`);
         }
         // Create OBS manager and execute operation
         obsManager = new obs_manager_1.OBSManager(inputs);
@@ -51123,10 +51123,10 @@ function getInputs() {
         accessKey: core.getInput('access_key', { required: true }),
         secretKey: core.getInput('secret_key', { required: true }),
         region: core.getInput('region', { required: true }) || 'cn-north-4',
-        bucketName: core.getInput('bucket_name', { required: true }),
+        bucketName: core.getInput('bucket', { required: true }),
         operation: core.getInput('operation') || 'upload',
-        source: core.getInput('source') || undefined,
-        destination: core.getInput('destination') || undefined,
+        localPath: core.getInput('local_path') || undefined,
+        obsPath: core.getInput('obs_path') || undefined,
         include: parseStringArray(core.getInput('include')),
         exclude: parseStringArray(core.getInput('exclude')),
         preserveStructure: parseBool(core.getInput('preserve_structure'), true),
