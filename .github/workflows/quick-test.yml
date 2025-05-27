@@ -13,11 +13,16 @@ on:
         default: 'Hello from GitHub Actions!'
         type: string
 
+env:
+  OBS_BUCKET: ${{ inputs.obs_bucket || secrets.OBS_BUCKET }}
+  OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
+  OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
+
 jobs:
   quick-upload-test:
     runs-on: ubuntu-latest
     name: Quick Upload Test
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,10 +41,10 @@ jobs:
       - name: Test file upload
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
           region: cn-north-4
-          bucket_name: ${{ inputs.obs_bucket }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-file.txt
           destination: quick-test/
@@ -49,7 +54,7 @@ jobs:
       - name: Verify upload
         run: |
           echo "Upload completed successfully!"
-          echo "Check your OBS bucket '${{ inputs.obs_bucket }}' for the file at 'quick-test/test-file.txt'"
+          echo "Check your OBS bucket '${{ env.OBS_BUCKET }}' for the file at 'quick-test/test-file.txt'"
 
       - name: Cleanup
         if: always()
