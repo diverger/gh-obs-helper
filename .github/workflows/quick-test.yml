@@ -27,11 +27,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build the action
-        run: |
-          npm ci
-          npm run build
-
       - name: Create test file
         run: |
           echo "${{ inputs.test_file_content }}" > test-file.txt
