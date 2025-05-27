@@ -1,3 +1,23 @@
+/*
+ * \file types.ts
+ * \date Wednesday, 2025/05/28 1:31:40
+ *
+ * \author diverger <diverger@live.cn>
+ *
+ * \brief Type definitions for the Huawei Cloud OBS GitHub Action
+ *        Defines interfaces for action inputs, OBS configuration, file operations,
+ *        and operation results with comprehensive type safety.
+ *
+ * Last Modified: Wednesday, 2025/05/28 7:42:29
+ *
+ * Copyright (c) 2025
+ * Licensed under the MIT License
+ * ---------------------------------------------------------
+ * HISTORY:
+ * 2025-05-28	diverger	Initial type definitions for OBS operations
+ * 2025-05-28	diverger	Extended OBSConfig with complete SDK properties for timeout support
+ */
+
 export interface ActionInputs {
   accessKey: string;
   secretKey: string;

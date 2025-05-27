@@ -1,3 +1,23 @@
+/*
+ * \file index.ts
+ * \date Tuesday, 2025/05/27 17:50:05
+ *
+ * \author diverger <diverger@live.cn>
+ *
+ * \brief Main entry point for the Huawei Cloud OBS GitHub Action
+ *        Handles input parsing, operation execution, and result reporting
+ *        for file uploads, downloads, and bucket management.
+ *
+ * Last Modified: Wednesday, 2025/05/28 7:41:56
+ *
+ * Copyright (c) 2025
+ * Licensed under the MIT License
+ * ---------------------------------------------------------
+ * HISTORY:
+ * 2025-05-27	diverger	Initial GitHub Action implementation
+ * 2025-05-28	diverger	Added comprehensive error handling and result reporting
+ */
+
 import * as core from '@actions/core';
 import { getInputs, setOutputs, logError, logSuccess } from './utils';
 import { OBSManager } from './obs-manager';

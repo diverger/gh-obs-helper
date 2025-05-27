@@ -1,3 +1,23 @@
+/*
+ * \file utils.ts
+ * \date Wednesday, 2025/05/28 1:31:40
+ *
+ * \author diverger <diverger@live.cn>
+ *
+ * \brief Utility functions for GitHub Actions integration
+ *        Handles input parsing, output setting, logging, and action result
+ *        formatting with proper GitHub Actions workflow integration.
+ *
+ * Last Modified: Wednesday, 2025/05/28 7:42:40
+ *
+ * Copyright (c) 2025
+ * Licensed under the MIT License
+ * ---------------------------------------------------------
+ * HISTORY:
+ * 2025-05-28	diverger	Initial utility functions for GitHub Actions integration
+ * 2025-05-28	diverger	Added comprehensive logging and output formatting
+ */
+
 import * as core from '@actions/core';
 import { ActionInputs } from './types';
 

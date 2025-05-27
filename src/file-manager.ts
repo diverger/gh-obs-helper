@@ -1,11 +1,35 @@
+/*
+ * \file file-manager.ts
+ * \date Tuesday, 2025/05/27 17:48:52
+ *
+ * \author diverger <diverger@live.cn>
+ *
+ * \brief File Manager class for handling local file operations
+ *        Supports file discovery, path resolution, streaming MD5 calculation,
+ *        and large file detection for optimized processing.
+ *
+ * Last Modified: Wednesday, 2025/05/28 7:42:19
+ *
+ * Copyright (c) 2025
+ * Licensed under the MIT License
+ * ---------------------------------------------------------
+ * HISTORY:
+ * 2025-05-27	diverger	Initial file management implementation
+ * 2025-05-28	diverger	Added streaming MD5 calculation and large file detection
+ */
+
 import { glob } from 'glob';
 import { promises as fs } from 'fs';
 import { stat } from 'fs/promises';
 import path from 'path';
+import { createReadStream } from 'fs';
+import { createHash } from 'crypto';
 import { ActionInputs, FileOperation } from './types';
 import { logProgress, logError } from './utils';
 
 export class FileManager {
+  private static readonly LARGE_FILE_THRESHOLD = 100 * 1024 * 1024; // 100MB threshold
+
   constructor(private inputs: ActionInputs) {}
 
   async resolveFiles(): Promise<FileOperation[]> {
@@ -188,5 +212,33 @@ export class FileManager {
     // Ensure directory exists
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, data);
+  }
+
+  async calculateMD5(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const hash = createHash('md5');
+      const stream = createReadStream(filePath);
+
+      stream.on('data', (data) => {
+        hash.update(data);
+      });
+
+      stream.on('end', () => {
+        resolve(hash.digest('hex'));
+      });
+
+      stream.on('error', (error) => {
+        reject(error);
+      });
+    });
+  }
+
+  async isLargeFile(filePath: string): Promise<boolean> {
+    try {
+      const size = await this.getFileSize(filePath);
+      return size > FileManager.LARGE_FILE_THRESHOLD;
+    } catch {
+      return false;
+    }
   }
 }

@@ -1,3 +1,20 @@
+/*
+ * \file esdk-obs-nodejs.d.ts
+ * \date Tuesday, 2025/05/27 18:47:31
+ *
+ * \author diverger <diverger@live.cn>
+ *
+ * \brief
+ *
+ * TODO: long description
+ *
+ * Last Modified: Wednesday, 2025/05/28 7:42:56
+ *
+ * Copyright (c) 2025
+ * ---------------------------------------------------------
+ * HISTORY:
+ */
+
 declare module 'esdk-obs-nodejs' {
   interface OBSConfig {
     access_key_id: string;
