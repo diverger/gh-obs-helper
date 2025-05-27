@@ -28,8 +28,8 @@ on:
         type: string
 
 env:
-  OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
-  OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
+  OBS_ACCESS_KEY: ${{ secrets.OBS_ACCESS_KEY }}
+  OBS_SECRET_KEY: ${{ secrets.OBS_SECRET_KEY }}
   OBS_REGION: ${{ inputs.region || 'cn-north-4' }}
   OBS_BUCKET: ${{ inputs.bucket }}
 
@@ -64,8 +64,8 @@ jobs:
         if: inputs.sync_direction == 'local-to-remote'
         uses: ./
         with:
-          access_key: ${{ env.OBS_KEY_ID }}
-          secret_key: ${{ env.OBS_KEY_SECRET }}
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: sync
@@ -80,8 +80,8 @@ jobs:
         if: inputs.sync_direction == 'remote-to-local'
         uses: ./
         with:
-          access_key: ${{ env.OBS_KEY_ID }}
-          secret_key: ${{ env.OBS_KEY_SECRET }}
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: sync
@@ -95,8 +95,8 @@ jobs:
         if: inputs.sync_direction == 'bidirectional'
         uses: ./
         with:
-          access_key: ${{ env.OBS_KEY_ID }}
-          secret_key: ${{ env.OBS_KEY_SECRET }}
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: sync
@@ -119,8 +119,8 @@ jobs:
         if: inputs.sync_direction == 'bidirectional'
         uses: ./
         with:
-          access_key: ${{ env.OBS_KEY_ID }}
-          secret_key: ${{ env.OBS_KEY_SECRET }}
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: sync

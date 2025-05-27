@@ -16,6 +16,7 @@ export interface ActionInputs {
   checksumValidation: boolean;
   storageClass: 'STANDARD' | 'WARM' | 'COLD';
   publicRead: boolean;
+  timeout: number;
 }
 
 export interface OperationResult {

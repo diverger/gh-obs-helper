@@ -198,6 +198,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
 | `checksum_validation` | Validate file checksums after upload | | `false` |
 | `storage_class` | OBS storage class (STANDARD, WARM, COLD) | | `STANDARD` |
 | `public_read` | Make uploaded objects public readable | | `false` |
+| `timeout` | Request timeout in seconds | | `300` |
 
 ## 📤 Outputs
 
