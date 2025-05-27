@@ -29,7 +29,7 @@ Copy this template to `RELEASE_NOTES.md` before creating a release tag to provid
 ### 🛠️ Usage Example
 ```yaml
 - name: Upload to OBS
-  uses: your-username/gh-action-obs-helper@v[VERSION]
+  uses: your-username/gh-obs-helper@v[VERSION]
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
