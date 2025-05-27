@@ -131,6 +131,11 @@ export class OBSManager {
       .filter(r => r.status === 'success')
       .reduce((total, file) => total + file.size, 0);
 
+    // Collect URLs from successful uploads
+    const uploadUrls = results
+      .filter(r => r.status === 'success' && r.url)
+      .map(r => r.url!);
+
     return {
       filesProcessed: results.length,
       bytesTransferred,
@@ -138,7 +143,8 @@ export class OBSManager {
       successCount,
       errorCount: results.length - successCount,
       fileList: results,
-      errors
+      errors,
+      uploadUrls
     };
   }
 
@@ -175,6 +181,15 @@ export class OBSManager {
             size: operation.size || fileData.length,
             status: 'success'
           };
+
+          // Generate URL for the uploaded file
+          if (this.inputs.publicRead) {
+            // For public files, use direct URL
+            processedFile.url = this.generateObjectUrl(operation.remotePath);
+          } else {
+            // For private files, generate signed URL (valid for 1 hour)
+            processedFile.url = this.generateSignedUrl(operation.remotePath, 3600);
+          }
 
           // Add checksum if validation is enabled
           if (this.inputs.checksumValidation) {
@@ -544,6 +559,28 @@ export class OBSManager {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private generateObjectUrl(objectKey: string): string {
+    // Generate direct URL for the uploaded object
+    const endpoint = this.getServerEndpoint().replace('https://', '');
+    return `https://${this.inputs.bucketName}.${endpoint}/${objectKey}`;
+  }
+
+  private generateSignedUrl(objectKey: string, expiresInSeconds: number = 3600): string {
+    try {
+      // Generate a pre-signed URL for accessing the object
+      const signedUrl = this.client.createSignedUrlSync('GetObject', {
+        Bucket: this.inputs.bucketName,
+        Key: objectKey,
+        Expires: expiresInSeconds
+      });
+      return signedUrl;
+    } catch (error) {
+      logWarning(`Failed to generate signed URL for ${objectKey}: ${error}`);
+      // Fall back to direct URL
+      return this.generateObjectUrl(objectKey);
+    }
   }
 
   close(): void {

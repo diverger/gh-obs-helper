@@ -4,6 +4,46 @@
 
 ### 🎯 What's New
 
+#### 🔗 **URL Output Support**
+- **NEW**: Automatic URL generation for uploaded files
+- **Public files**: Direct URLs for immediate access
+- **Private files**: Pre-signed URLs with 1-hour validity
+- **Multiple outputs**: Both individual and array formats
+
+#### 📤 **Enhanced Outputs**
+- `upload_urls`: JSON array of all uploaded file URLs
+- `first_upload_url`: Direct access to the first uploaded file URL
+- Perfect for single file uploads and subsequent workflow steps
+
+### 🛠️ Usage Examples
+
+#### Basic Upload with URL Output
+```yaml
+- name: Upload and get URL
+  id: upload
+  uses: diverger/gh-obs-helper@v1.1.0
+  with:
+    access_key: ${{ secrets.OBS_ACCESS_KEY }}
+    secret_key: ${{ secrets.OBS_SECRET_KEY }}
+    region: 'cn-north-4'
+    bucket: 'my-bucket'
+    operation: 'upload'
+    local_path: 'dist/app.js'
+    obs_path: 'releases/v1.1.0/'
+    public_read: true
+
+- name: Use the uploaded file URL
+  run: |
+    echo "File available at: ${{ steps.upload.outputs.first_upload_url }}"
+    curl -I "${{ steps.upload.outputs.first_upload_url }}"
+```
+
+---
+
+## 🚀 GH OBS Helper Release v1.0.0
+
+### 🎯 What's New
+
 - **📥 Download Functionality**: Full download support with pattern matching and parallel processing
 - **🔍 Advanced Object Listing**: Efficient pagination for large buckets
 - **🎯 Pattern Filtering**: Include/exclude patterns for downloads
@@ -23,7 +63,7 @@
 **Basic Download:**
 ```yaml
 - name: Download files
-  uses: diverger/gh-obs-helper@v1.1.0
+  uses: diverger/gh-obs-helper@v1.0.0
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -37,7 +77,7 @@
 **Download with Patterns:**
 ```yaml
 - name: Download specific files
-  uses: diverger/gh-obs-helper@v1.1.0
+  uses: diverger/gh-obs-helper@v1.0.0
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
