@@ -55,7 +55,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: download
           source: ${{ inputs.remote_path }}simple.txt
           destination: downloads/
@@ -68,7 +68,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: download
           source: ${{ inputs.remote_path }}multiple/
           destination: downloads/multiple/
@@ -82,7 +82,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: download
           source: ${{ inputs.remote_path }}directory/
           destination: downloads/directory/
@@ -97,7 +97,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: download
           source: ${{ inputs.remote_path }}**/*.txt
           destination: downloads/wildcard/

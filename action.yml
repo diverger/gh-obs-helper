@@ -16,7 +16,7 @@ inputs:
     description: 'OBS region (e.g., cn-north-4, ap-southeast-1)'
     required: true
     default: 'cn-north-4'
-  bucket_name:
+  bucket:
     description: 'OBS bucket name'
     required: true
   operation:

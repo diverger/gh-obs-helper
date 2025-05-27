@@ -120,7 +120,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           source: ${{ matrix.test_case.files }}
           destination: ${{ matrix.test_case.destination }}
@@ -150,7 +150,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: download
           source: test-uploads/single/single-test.txt
           destination: downloads/
@@ -162,7 +162,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: download
           source: test-uploads/directory/
           destination: downloads/directory/
@@ -201,7 +201,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: sync
           source: sync-local/
           destination: test-uploads/sync/
@@ -229,7 +229,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: delete
           source: test-uploads/
           progress: true

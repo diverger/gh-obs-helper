@@ -3,7 +3,7 @@ name: Quick Test - File Upload
 on:
   workflow_dispatch:
     inputs:
-      obs_bucket:
+      bucket:
         description: 'OBS bucket name'
         required: false
         type: string
@@ -14,7 +14,7 @@ on:
         type: string
 
 env:
-  OBS_BUCKET: ${{ inputs.obs_bucket || secrets.OBS_BUCKET }}
+  OBS_BUCKET: ${{ inputs.bucket || secrets.OBS_BUCKET }}
   OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
   OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
 
@@ -39,7 +39,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: cn-north-4
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-file.txt
           destination: quick-test/

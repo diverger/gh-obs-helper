@@ -67,7 +67,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: sync
           source: sync-test/local/
           destination: ${{ inputs.remote_prefix }}
@@ -83,7 +83,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: sync
           source: ${{ inputs.remote_prefix }}
           destination: sync-test/remote-download/
@@ -98,7 +98,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: sync
           source: sync-test/local/
           destination: ${{ inputs.remote_prefix }}bidirectional/
@@ -122,7 +122,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: sync
           source: sync-test/local/
           destination: ${{ inputs.remote_prefix }}bidirectional/

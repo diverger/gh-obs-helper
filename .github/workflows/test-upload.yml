@@ -52,7 +52,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/simple.txt
           destination: test-uploads/single/
@@ -66,7 +66,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/documents/doc1.txt,test-files/documents/doc2.txt,test-files/images/image1.jpg
           destination: test-uploads/multiple/
@@ -80,7 +80,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/
           destination: test-uploads/directory/
@@ -95,7 +95,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/**/*.txt
           destination: test-uploads/wildcard/
@@ -110,7 +110,7 @@ jobs:
           access_key: ${{ env.OBS_KEY_ID }}
           secret_key: ${{ env.OBS_KEY_SECRET }}
           region: ${{ env.OBS_REGION }}
-          bucket_name: ${{ env.OBS_BUCKET }}
+          bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/large-file.bin
           destination: test-uploads/large/
