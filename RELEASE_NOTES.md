@@ -1,6 +1,6 @@
 # Release Notes
 
-## 🚀 GH OBS Helper Release v1.1.0
+## 🚀 GH OBS Helper Release v1.0.0
 
 ### 🎯 What's New
 
@@ -23,7 +23,7 @@
 **Basic Download:**
 ```yaml
 - name: Download files
-  uses: diverger/gh-obs-helper@v1.1.0
+  uses: diverger/gh-obs-helper@v1.0.0
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -37,7 +37,7 @@
 **Download with Patterns:**
 ```yaml
 - name: Download specific files
-  uses: diverger/gh-obs-helper@v1.1.0
+  uses: diverger/gh-obs-helper@v1.0.0
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
