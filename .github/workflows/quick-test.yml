@@ -41,8 +41,8 @@ jobs:
           region: cn-north-4
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
-          source: test-file.txt
-          destination: quick-test/
+          local_path: test-file.txt
+          obs_path: quick-test/
           progress: true
           dry_run: false
 

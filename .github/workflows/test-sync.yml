@@ -69,8 +69,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: sync
-          source: sync-test/local/
-          destination: ${{ inputs.remote_prefix }}
+          local_path: sync-test/local/
+          obs_path: ${{ inputs.remote_prefix }}
           preserve_structure: true
           progress: true
           concurrency: 3
@@ -85,8 +85,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: sync
-          source: ${{ inputs.remote_prefix }}
-          destination: sync-test/remote-download/
+          obs_path: ${{ inputs.remote_prefix }}
+          local_path: sync-test/remote-download/
           preserve_structure: true
           progress: true
           concurrency: 3
@@ -100,8 +100,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: sync
-          source: sync-test/local/
-          destination: ${{ inputs.remote_prefix }}bidirectional/
+          local_path: sync-test/local/
+          obs_path: ${{ inputs.remote_prefix }}bidirectional/
           preserve_structure: true
           progress: true
 
@@ -124,8 +124,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: sync
-          source: sync-test/local/
-          destination: ${{ inputs.remote_prefix }}bidirectional/
+          local_path: sync-test/local/
+          obs_path: ${{ inputs.remote_prefix }}bidirectional/
           preserve_structure: true
           progress: true
 

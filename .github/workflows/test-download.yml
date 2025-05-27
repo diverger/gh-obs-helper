@@ -57,8 +57,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: download
-          source: ${{ inputs.remote_path }}simple.txt
-          destination: downloads/
+          obs_path: ${{ inputs.remote_path }}simple.txt
+          local_path: downloads/
           progress: true
 
       - name: Test Multiple Files Download
@@ -70,8 +70,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: download
-          source: ${{ inputs.remote_path }}multiple/
-          destination: downloads/multiple/
+          obs_path: ${{ inputs.remote_path }}multiple/
+          local_path: downloads/multiple/
           concurrency: 3
           progress: true
 
@@ -84,8 +84,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: download
-          source: ${{ inputs.remote_path }}directory/
-          destination: downloads/directory/
+          obs_path: ${{ inputs.remote_path }}directory/
+          local_path: downloads/directory/
           preserve_structure: true
           progress: true
           concurrency: 5
@@ -99,8 +99,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: download
-          source: ${{ inputs.remote_path }}**/*.txt
-          destination: downloads/wildcard/
+          obs_path: ${{ inputs.remote_path }}**/*.txt
+          local_path: downloads/wildcard/
           exclude: "*large*"
           preserve_structure: true
           progress: true

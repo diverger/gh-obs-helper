@@ -65,16 +65,16 @@ jobs:
         test_case:
           - name: "Single File"
             files: "single-test.txt"
-            destination: "test-uploads/single/"
+            obs_path: "test-uploads/single/"
           - name: "Multiple Files"
             files: "multi-test-1.txt,multi-test-2.txt,multi-test-3.txt"
-            destination: "test-uploads/multiple/"
+            obs_path: "test-uploads/multiple/"
           - name: "Directory Structure"
             files: "test-dir/"
-            destination: "test-uploads/directory/"
+            obs_path: "test-uploads/directory/"
           - name: "Wildcard Pattern"
             files: "test-wildcard/**/*.txt"
-            destination: "test-uploads/wildcard/"
+            obs_path: "test-uploads/wildcard/"
 
     steps:
       - name: Checkout repository
@@ -122,8 +122,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
-          source: ${{ matrix.test_case.files }}
-          destination: ${{ matrix.test_case.destination }}
+          local_path: ${{ matrix.test_case.files }}
+          obs_path: ${{ matrix.test_case.obs_path }}
           preserve_structure: true
           progress: true
           concurrency: 5
@@ -152,8 +152,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: download
-          source: test-uploads/single/single-test.txt
-          destination: downloads/
+          obs_path: test-uploads/single/single-test.txt
+          local_path: downloads/
           progress: true
 
       - name: Test Download Directory
@@ -164,8 +164,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: download
-          source: test-uploads/directory/
-          destination: downloads/directory/
+          obs_path: test-uploads/directory/
+          local_path: downloads/directory/
           preserve_structure: true
           progress: true
 
@@ -203,8 +203,8 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: sync
-          source: sync-local/
-          destination: test-uploads/sync/
+          local_path: sync-local/
+          obs_path: test-uploads/sync/
           preserve_structure: true
           progress: true
 
@@ -231,7 +231,7 @@ jobs:
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: delete
-          source: test-uploads/
+          obs_path: test-uploads/
           progress: true
         continue-on-error: true
 

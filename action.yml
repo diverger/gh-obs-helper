@@ -23,11 +23,11 @@ inputs:
     description: 'Operation type: upload, download, sync, create-bucket, delete-bucket'
     required: true
     default: 'upload'
-  source:
-    description: 'Source path(s) - supports wildcards (*, **, ?), multiple patterns separated by commas'
+  local_path:
+    description: 'Local file/directory path(s) - supports wildcards (*, **, ?), multiple patterns separated by commas'
     required: false
-  destination:
-    description: 'Destination path in OBS bucket'
+  obs_path:
+    description: 'OBS object path/prefix (remote path in bucket)'
     required: false
   include:
     description: 'Include patterns (comma-separated)'
