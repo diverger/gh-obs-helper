@@ -81,42 +81,85 @@ When you push to main/master/develop:
 
 ### 3. Creating Releases
 
-#### Option A: Git Tags (with Manual Release Notes)
+#### 🚀 **Recommended: Automated Release Management**
+
+Use the `prepare-release.sh` script for streamlined releases:
+
 ```bash
-# 1. Create manual release notes
+# Run the release preparation script
+./prepare-release.sh
+
+# Follow the prompts:
+# 1. Enter new version (e.g., 1.2.0)
+# 2. Confirm the preparation
+# 3. Edit RELEASE_NOTES.md with your release details
+# 4. Build and commit changes
+# 5. Create and push the tag
+```
+
+**What the script does:**
+- Archives current release notes to `RELEASE_NOTES_ARCHIVE.md`
+- Updates `package.json` version
+- Creates new `RELEASE_NOTES.md` from template
+- Provides clear next steps
+
+#### 📋 **Manual Release Process**
+
+If you prefer manual control:
+
+```bash
+# 1. Archive current release notes (if not first release)
+# Move current RELEASE_NOTES.md content to top of RELEASE_NOTES_ARCHIVE.md
+
+# 2. Create new release notes
 cp RELEASE_NOTES_TEMPLATE.md RELEASE_NOTES.md
 # Edit RELEASE_NOTES.md with your release details
 
-# 2. Commit the release notes
-git add RELEASE_NOTES.md
-git commit -m "docs: Add release notes for v1.0.0"
+# 3. Update package.json version
+# Edit package.json "version" field
 
-# 3. Create and push the tag
-git tag v1.0.0
-git push origin v1.0.0
+# 4. Build and commit
+npm run build
+git add .
+git commit -m "Prepare release v1.2.0"
 
-# 4. Clean up (optional)
-git rm RELEASE_NOTES.md
-git commit -m "docs: Remove release notes after release"
+# 5. Create and push tag
+git tag v1.2.0
+git push origin v1.2.0
 ```
 
-#### Option B: Git Tags (Auto-generated Notes)
+#### ⚡ **Quick Release (Auto-generated Notes)**
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-#### Option C: Manual Dispatch
-1. Go to Actions → Release and Tag
-2. Click "Run workflow"
-3. Enter tag version (e.g., `v1.0.0`)
-4. If you want custom notes, create `RELEASE_NOTES.md` first
+## 📝 Release Notes Management
+
+### 📂 **File Structure**
+- **`RELEASE_NOTES.md`** - Current release only (keeps GitHub releases concise)
+- **`RELEASE_NOTES_ARCHIVE.md`** - All previous releases (complete history)
+- **`RELEASE_NOTES_TEMPLATE.md`** - Template for new releases
+
+### ✨ **Benefits of This System**
+- ✅ **Short GitHub release pages** - Only current version shown
+- ✅ **Complete history preserved** - All versions archived
+- ✅ **Automated workflow** - Script handles tedious parts
+- ✅ **Consistent formatting** - Template ensures uniformity
 
 ## 📝 Creating Manual Release Notes
 
-### Best Practice: Manual Release Notes
+### 🎯 **Best Practice: Use the Automation Script**
 
-For professional releases, create detailed release notes manually:
+The recommended approach is to use `prepare-release.sh`:
+
+```bash
+./prepare-release.sh
+```
+
+### 📋 **Manual Release Notes Creation**
+
+If you need manual control:
 
 1. **Copy the template:**
    ```bash
@@ -130,24 +173,33 @@ For professional releases, create detailed release notes manually:
    - Migration instructions
    - Usage examples
 
-3. **Create release:**
+3. **Replace version placeholders:**
    ```bash
-   # Commit release notes
-   git add RELEASE_NOTES.md
-   git commit -m "docs: Add release notes for v1.0.0"
-
-   # Create and push tag
-   git tag v1.0.0
-   git push origin v1.0.0
-
-   # Optional: Clean up after release
-   git rm RELEASE_NOTES.md
-   git commit -m "docs: Remove release notes after release"
+   # Replace [VERSION] with your version (e.g., v1.2.0)
+   sed -i 's/\[VERSION\]/v1.2.0/g' RELEASE_NOTES.md
    ```
 
-### Automatic Release Notes (Fallback)
+### 📚 **Release Notes Guidelines**
 
-If no `RELEASE_NOTES.md` exists, the workflow generates basic release notes automatically.
+#### ✅ **Do:**
+- Keep current release notes concise and focused
+- Include practical examples for new features
+- Mention breaking changes prominently
+- Archive old releases to keep GitHub pages clean
+
+#### ❌ **Don't:**
+- Let RELEASE_NOTES.md grow indefinitely
+- Skip release notes for bug fixes
+- Forget to update package.json version
+- Include internal/technical details users don't need
+
+### 📁 **Archive Management**
+
+The system maintains two files:
+- **Current:** `RELEASE_NOTES.md` (shown on GitHub releases)
+- **Archive:** `RELEASE_NOTES_ARCHIVE.md` (historical record)
+
+This keeps GitHub release pages short while preserving complete history.
 
 ## 🧪 Testing
 
@@ -187,22 +239,88 @@ uses: your-username/gh-obs-helper@v1
 | `dist/index.js` | Compiled JavaScript (auto-generated) |
 | `package.json` | Dependencies and build scripts |
 | `build.sh` | Local build helper script |
+| **`prepare-release.sh`** | **Automated release management** |
+| **`RELEASE_NOTES.md`** | **Current release notes only** |
+| **`RELEASE_NOTES_ARCHIVE.md`** | **Historical release notes** |
+| **`RELEASE_NOTES_TEMPLATE.md`** | **Template for new releases** |
 
 ## 🚀 Release Process
 
+### 🎯 **Streamlined Workflow (Recommended)**
+
 1. **Development:** Make changes in `src/`
-2. **Testing:** Use test workflows
-3. **Build:** Auto-built on push
-4. **Release:** Tag version → Auto-release
-5. **Distribution:** Users reference by tag
+2. **Testing:** Use test workflows and `./build.sh`
+3. **Release Preparation:** Run `./prepare-release.sh`
+4. **Documentation:** Edit `RELEASE_NOTES.md` with release details
+5. **Build & Tag:** Follow script instructions to build and create tag
+6. **Distribution:** GitHub automatically creates release
+
+### 📋 **Detailed Steps**
+
+```bash
+# 1. Development and testing
+git checkout -b feature/my-feature
+# Make your changes...
+./build.sh
+# Test your changes...
+
+# 2. Merge to main
+git checkout main
+git merge feature/my-feature
+
+# 3. Prepare release
+./prepare-release.sh
+# Enter version: 1.2.0
+# Confirm: y
+
+# 4. Document changes
+# Edit RELEASE_NOTES.md with your release information
+
+# 5. Build and commit
+npm run build
+git add .
+git commit -m "Prepare release v1.2.0"
+
+# 6. Create and push tag
+git tag v1.2.0
+git push origin v1.2.0
+
+# 7. Create GitHub release using RELEASE_NOTES.md content
+```
+
+### 🔄 **What Happens During Release**
+
+1. **Archive Management:** Current release moves to archive
+2. **Version Update:** package.json updated automatically
+3. **Template Creation:** New RELEASE_NOTES.md from template
+4. **GitHub Release:** Created with content from RELEASE_NOTES.md
+5. **Major Tag Update:** `v1` points to latest `v1.x.x`
 
 ## 📋 Best Practices
 
+### 🔨 **Development**
 - Always test changes with `./build.sh`
 - Use semantic versioning for tags (`v1.0.0`)
 - Keep `dist/` folder in sync with source
-- Update README.md for user-facing changes
 - Test with actual OBS credentials before release
+
+### 📝 **Release Management**
+- **Use `prepare-release.sh`** for consistent releases
+- **Keep release notes concise** - archive old versions
+- **Include examples** for new features in release notes
+- **Test major releases** with pre-release tags first
+
+### 📚 **Documentation**
+- Update README.md for user-facing changes
+- Document breaking changes prominently
+- Include migration guides for major versions
+- Keep DEVELOPMENT.md updated with process changes
+
+### 🧪 **Testing**
+- Test with `dry_run: true` first
+- Use test workflows for comprehensive validation
+- Verify timeout settings work with large files
+- Test URL generation for both public/private files
 
 ## 🐛 Troubleshooting
 
