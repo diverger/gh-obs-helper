@@ -3,11 +3,11 @@ name: Comprehensive OBS Action Tests
 on:
   workflow_dispatch:
     inputs:
-      obs_bucket:
+      bucket:
         description: 'OBS bucket name for testing'
         required: true
         type: string
-      obs_region:
+      region:
         description: 'OBS region'
         required: false
         default: 'cn-north-4'
@@ -34,10 +34,10 @@ on:
         type: boolean
 
 env:
-  OBS_BUCKET: ${{ inputs.obs_bucket }}
+  OBS_BUCKET: ${{ inputs.bucket }}
   OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
   OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
-  OBS_REGION: ${{ inputs.obs_region || 'cn-north-4' }}
+  OBS_REGION: ${{ inputs.region || 'cn-north-4' }}
 
 jobs:
   build:
@@ -238,8 +238,8 @@ jobs:
       - name: Test Summary
         run: |
           echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- Bucket: ${{ inputs.obs_bucket }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Region: ${{ inputs.obs_region }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Bucket: ${{ inputs.bucket }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Region: ${{ inputs.region }}" >> $GITHUB_STEP_SUMMARY
           echo "- Upload Tests: ${{ inputs.run_upload_tests }}" >> $GITHUB_STEP_SUMMARY
           echo "- Download Tests: ${{ inputs.run_download_tests }}" >> $GITHUB_STEP_SUMMARY
           echo "- Sync Tests: ${{ inputs.run_sync_tests }}" >> $GITHUB_STEP_SUMMARY

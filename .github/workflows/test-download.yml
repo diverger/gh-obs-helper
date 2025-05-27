@@ -13,11 +13,11 @@ on:
           - multiple-files
           - directory
           - wildcard-download
-      obs_bucket:
+      bucket:
         description: 'OBS bucket name for testing'
         required: true
         type: string
-      obs_region:
+      region:
         description: 'OBS region'
         required: false
         default: 'cn-north-4'
@@ -31,8 +31,8 @@ on:
 env:
   OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
   OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
-  OBS_REGION: ${{ inputs.obs_region || 'cn-north-4' }}
-  OBS_BUCKET: ${{ inputs.obs_bucket }}
+  OBS_REGION: ${{ inputs.region || 'cn-north-4' }}
+  OBS_BUCKET: ${{ inputs.bucket }}
 
 jobs:
   test-download:
