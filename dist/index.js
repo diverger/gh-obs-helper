@@ -50482,6 +50482,8 @@ const glob_1 = __nccwpck_require__(1363);
 const fs_1 = __nccwpck_require__(9896);
 const promises_1 = __nccwpck_require__(1943);
 const path_1 = __importDefault(__nccwpck_require__(6928));
+const fs_2 = __nccwpck_require__(9896);
+const crypto_1 = __nccwpck_require__(6982);
 const utils_1 = __nccwpck_require__(1798);
 class FileManager {
     constructor(inputs) {
@@ -50647,8 +50649,33 @@ class FileManager {
         await fs_1.promises.mkdir(path_1.default.dirname(filePath), { recursive: true });
         await fs_1.promises.writeFile(filePath, data);
     }
+    async calculateMD5(filePath) {
+        return new Promise((resolve, reject) => {
+            const hash = (0, crypto_1.createHash)('md5');
+            const stream = (0, fs_2.createReadStream)(filePath);
+            stream.on('data', (data) => {
+                hash.update(data);
+            });
+            stream.on('end', () => {
+                resolve(hash.digest('hex'));
+            });
+            stream.on('error', (error) => {
+                reject(error);
+            });
+        });
+    }
+    async isLargeFile(filePath) {
+        try {
+            const size = await this.getFileSize(filePath);
+            return size > FileManager.LARGE_FILE_THRESHOLD;
+        }
+        catch {
+            return false;
+        }
+    }
 }
 exports.FileManager = FileManager;
+FileManager.LARGE_FILE_THRESHOLD = 100 * 1024 * 1024; // 100MB threshold
 
 
 /***/ }),
@@ -50912,11 +50939,11 @@ class OBSManager {
                     (0, utils_1.logProgress)(`Retry ${attempt}/${maxRetries}: ${operation.localPath}`, this.inputs.progress);
                     await this.delay(1000 * attempt); // Exponential backoff
                 }
-                const fileData = await this.fileManager.readFile(operation.localPath);
+                // Use streaming upload for better memory efficiency with large files
                 const uploadParams = {
                     Bucket: this.inputs.bucketName,
                     Key: operation.remotePath,
-                    Body: fileData,
+                    SourceFile: operation.localPath, // Use file path instead of loading into memory
                     StorageClass: this.inputs.storageClass
                 };
                 if (this.inputs.publicRead) {
@@ -50927,7 +50954,7 @@ class OBSManager {
                     const processedFile = {
                         localPath: operation.localPath,
                         remotePath: operation.remotePath,
-                        size: operation.size || fileData.length,
+                        size: operation.size || await this.fileManager.getFileSize(operation.localPath),
                         status: 'success'
                     };
                     // Generate URL for the uploaded file
@@ -50941,7 +50968,8 @@ class OBSManager {
                     }
                     // Add checksum if validation is enabled
                     if (this.inputs.checksumValidation) {
-                        processedFile.checksum = (0, crypto_1.createHash)('md5').update(fileData).digest('hex');
+                        // For streaming uploads, calculate checksum efficiently using streaming
+                        processedFile.checksum = await this.fileManager.calculateMD5(operation.localPath);
                     }
                     return processedFile;
                 }
@@ -58128,8 +58156,6 @@ class PathBase {
     /**
      * Deprecated alias for Dirent['parentPath'] Somewhat counterintuitively,
      * this property refers to the *parent* path, not the path object itself.
-     *
-     * @deprecated
      */
     get path() {
         return this.parentPath;
@@ -59996,7 +60022,6 @@ class LRUCache {
     #max;
     #maxSize;
     #dispose;
-    #onInsert;
     #disposeAfter;
     #fetchMethod;
     #memoMethod;
@@ -60078,7 +60103,6 @@ class LRUCache {
     #hasDispose;
     #hasFetchMethod;
     #hasDisposeAfter;
-    #hasOnInsert;
     /**
      * Do not call this method unless you need to inspect the
      * inner workings of the cache.  If anything returned by this
@@ -60156,19 +60180,13 @@ class LRUCache {
         return this.#dispose;
     }
     /**
-     * {@link LRUCache.OptionsBase.onInsert} (read-only)
-     */
-    get onInsert() {
-        return this.#onInsert;
-    }
-    /**
      * {@link LRUCache.OptionsBase.disposeAfter} (read-only)
      */
     get disposeAfter() {
         return this.#disposeAfter;
     }
     constructor(options) {
-        const { max = 0, ttl, ttlResolution = 1, ttlAutopurge, updateAgeOnGet, updateAgeOnHas, allowStale, dispose, onInsert, disposeAfter, noDisposeOnSet, noUpdateTTL, maxSize = 0, maxEntrySize = 0, sizeCalculation, fetchMethod, memoMethod, noDeleteOnFetchRejection, noDeleteOnStaleGet, allowStaleOnFetchRejection, allowStaleOnFetchAbort, ignoreFetchAbort, } = options;
+        const { max = 0, ttl, ttlResolution = 1, ttlAutopurge, updateAgeOnGet, updateAgeOnHas, allowStale, dispose, disposeAfter, noDisposeOnSet, noUpdateTTL, maxSize = 0, maxEntrySize = 0, sizeCalculation, fetchMethod, memoMethod, noDeleteOnFetchRejection, noDeleteOnStaleGet, allowStaleOnFetchRejection, allowStaleOnFetchAbort, ignoreFetchAbort, } = options;
         if (max !== 0 && !isPosInt(max)) {
             throw new TypeError('max option must be a nonnegative integer');
         }
@@ -60212,9 +60230,6 @@ class LRUCache {
         if (typeof dispose === 'function') {
             this.#dispose = dispose;
         }
-        if (typeof onInsert === 'function') {
-            this.#onInsert = onInsert;
-        }
         if (typeof disposeAfter === 'function') {
             this.#disposeAfter = disposeAfter;
             this.#disposed = [];
@@ -60224,7 +60239,6 @@ class LRUCache {
             this.#disposed = undefined;
         }
         this.#hasDispose = !!this.#dispose;
-        this.#hasOnInsert = !!this.#onInsert;
         this.#hasDisposeAfter = !!this.#disposeAfter;
         this.noDisposeOnSet = !!noDisposeOnSet;
         this.noUpdateTTL = !!noUpdateTTL;
@@ -60661,7 +60675,7 @@ class LRUCache {
     }
     /**
      * Return an array of [key, {@link LRUCache.Entry}] tuples which can be
-     * passed to {@link LRUCache#load}.
+     * passed to {@link LRLUCache#load}.
      *
      * The `start` fields are calculated relative to a portable `Date.now()`
      * timestamp, even if `performance.now()` is available.
@@ -60792,9 +60806,6 @@ class LRUCache {
             if (status)
                 status.set = 'add';
             noUpdateTTL = false;
-            if (this.#hasOnInsert) {
-                this.#onInsert?.(v, k, 'add');
-            }
         }
         else {
             // update
@@ -60835,9 +60846,6 @@ class LRUCache {
             }
             else if (status) {
                 status.set = 'update';
-            }
-            if (this.#hasOnInsert) {
-                this.onInsert?.(v, k, v === oldVal ? 'update' : 'replace');
             }
         }
         if (ttl !== 0 && !this.#ttls) {
@@ -61423,8 +61431,7 @@ __nccwpck_require__.r(__webpack_exports__);
 
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
-  "default": () => (/* binding */ pLimit),
-  limitFunction: () => (/* binding */ limitFunction)
+  "default": () => (/* binding */ pLimit)
 });
 
 ;// CONCATENATED MODULE: ./node_modules/yocto-queue/index.js
@@ -61517,27 +61524,25 @@ class Queue {
 
 
 function pLimit(concurrency) {
-	validateConcurrency(concurrency);
+	if (!((Number.isInteger(concurrency) || concurrency === Number.POSITIVE_INFINITY) && concurrency > 0)) {
+		throw new TypeError('Expected `concurrency` to be a number from 1 and up');
+	}
 
 	const queue = new Queue();
 	let activeCount = 0;
 
-	const resumeNext = () => {
-		if (activeCount < concurrency && queue.size > 0) {
-			queue.dequeue()();
-			// Since `pendingCount` has been decreased by one, increase `activeCount` by one.
-			activeCount++;
-		}
-	};
-
 	const next = () => {
 		activeCount--;
 
-		resumeNext();
+		if (queue.size > 0) {
+			queue.dequeue()();
+		}
 	};
 
-	const run = async (function_, resolve, arguments_) => {
-		const result = (async () => function_(...arguments_))();
+	const run = async (fn, resolve, args) => {
+		activeCount++;
+
+		const result = (async () => fn(...args))();
 
 		resolve(result);
 
@@ -61548,30 +61553,24 @@ function pLimit(concurrency) {
 		next();
 	};
 
-	const enqueue = (function_, resolve, arguments_) => {
-		// Queue `internalResolve` instead of the `run` function
-		// to preserve asynchronous context.
-		new Promise(internalResolve => {
-			queue.enqueue(internalResolve);
-		}).then(
-			run.bind(undefined, function_, resolve, arguments_),
-		);
+	const enqueue = (fn, resolve, args) => {
+		queue.enqueue(run.bind(undefined, fn, resolve, args));
 
 		(async () => {
 			// This function needs to wait until the next microtask before comparing
 			// `activeCount` to `concurrency`, because `activeCount` is updated asynchronously
-			// after the `internalResolve` function is dequeued and called. The comparison in the if-statement
+			// when the run function is dequeued and called. The comparison in the if-statement
 			// needs to happen asynchronously as well to get an up-to-date value for `activeCount`.
 			await Promise.resolve();
 
-			if (activeCount < concurrency) {
-				resumeNext();
+			if (activeCount < concurrency && queue.size > 0) {
+				queue.dequeue()();
 			}
 		})();
 	};
 
-	const generator = (function_, ...arguments_) => new Promise(resolve => {
-		enqueue(function_, resolve, arguments_);
+	const generator = (fn, ...args) => new Promise(resolve => {
+		enqueue(fn, resolve, args);
 	});
 
 	Object.defineProperties(generator, {
@@ -61582,41 +61581,13 @@ function pLimit(concurrency) {
 			get: () => queue.size,
 		},
 		clearQueue: {
-			value() {
+			value: () => {
 				queue.clear();
-			},
-		},
-		concurrency: {
-			get: () => concurrency,
-
-			set(newConcurrency) {
-				validateConcurrency(newConcurrency);
-				concurrency = newConcurrency;
-
-				queueMicrotask(() => {
-					// eslint-disable-next-line no-unmodified-loop-condition
-					while (activeCount < concurrency && queue.size > 0) {
-						resumeNext();
-					}
-				});
 			},
 		},
 	});
 
 	return generator;
-}
-
-function limitFunction(function_, option) {
-	const {concurrency} = option;
-	const limit = pLimit(concurrency);
-
-	return (...arguments_) => limit(() => function_(...arguments_));
-}
-
-function validateConcurrency(concurrency) {
-	if (!((Number.isInteger(concurrency) || concurrency === Number.POSITIVE_INFINITY) && concurrency > 0)) {
-		throw new TypeError('Expected `concurrency` to be a number from 1 and up');
-	}
 }
 
 

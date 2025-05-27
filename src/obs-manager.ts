@@ -161,12 +161,11 @@ export class OBSManager {
           await this.delay(1000 * attempt); // Exponential backoff
         }
 
-        const fileData = await this.fileManager.readFile(operation.localPath);
-
+        // Use streaming upload for better memory efficiency with large files
         const uploadParams: any = {
           Bucket: this.inputs.bucketName,
           Key: operation.remotePath,
-          Body: fileData,
+          SourceFile: operation.localPath, // Use file path instead of loading into memory
           StorageClass: this.inputs.storageClass
         };
 
@@ -180,7 +179,7 @@ export class OBSManager {
           const processedFile: ProcessedFile = {
             localPath: operation.localPath,
             remotePath: operation.remotePath,
-            size: operation.size || fileData.length,
+            size: operation.size || await this.fileManager.getFileSize(operation.localPath),
             status: 'success'
           };
 
@@ -195,7 +194,8 @@ export class OBSManager {
 
           // Add checksum if validation is enabled
           if (this.inputs.checksumValidation) {
-            processedFile.checksum = createHash('md5').update(fileData).digest('hex');
+            // For streaming uploads, calculate checksum efficiently using streaming
+            processedFile.checksum = await this.fileManager.calculateMD5(operation.localPath);
           }
 
           return processedFile;
