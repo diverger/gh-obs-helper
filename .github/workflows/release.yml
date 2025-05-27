@@ -81,40 +81,40 @@ jobs:
 
             # Generate basic release notes as fallback
             cat > RELEASE_NOTES.md << 'EOF'
-          ## 🚀 GH OBS Helper Release ${{ steps.tag.outputs.tag }}
+            ## 🚀 GH OBS Helper Release ${{ steps.tag.outputs.tag }}
 
-          ### Release Information
-          This is an automated release of the GH OBS Helper.
+            ### Release Information
+            This is an automated release of the GH OBS Helper.
 
-          ### 🛠️ Usage
-          ```yaml
-          - name: Upload to OBS
-            uses: diverger/gh-obs-helper@${{ steps.tag.outputs.tag }}
-            with:
-              access_key: ${{ secrets.OBS_ACCESS_KEY }}
-              secret_key: ${{ secrets.OBS_SECRET_KEY }}
-              region: 'cn-north-4'
-              bucket: 'my-bucket'
-              operation: 'upload'
-              local_path: 'dist/**/*'
-              obs_path: 'releases/${{ steps.tag.outputs.tag }}/'
-          ```
+            ### 🛠️ Usage
+            ```yaml
+            - name: Upload to OBS
+              uses: diverger/gh-obs-helper@${{ steps.tag.outputs.tag }}
+              with:
+                access_key: ${{ secrets.OBS_ACCESS_KEY }}
+                secret_key: ${{ secrets.OBS_SECRET_KEY }}
+                region: 'cn-north-4'
+                bucket: 'my-bucket'
+                operation: 'upload'
+                local_path: 'dist/**/*'
+                obs_path: 'releases/${{ steps.tag.outputs.tag }}/'
+            ```
 
-          ### 📋 Available Operations
-          - `upload`: Upload files to OBS
-          - `download`: Download files from OBS
-          - `sync`: Synchronize local and OBS directories
-          - `create-bucket`: Create a new OBS bucket
-          - `delete-bucket`: Delete an OBS bucket
+            ### 📋 Available Operations
+            - `upload`: Upload files to OBS
+            - `download`: Download files from OBS
+            - `sync`: Synchronize local and OBS directories
+            - `create-bucket`: Create a new OBS bucket
+            - `delete-bucket`: Delete an OBS bucket
 
-          ### 📋 Parameters
-          - `local_path`: Local file/directory paths (supports wildcards)
-          - `obs_path`: OBS object path/prefix
-          - `operation`: The operation to perform
+            ### 📋 Parameters
+            - `local_path`: Local file/directory paths (supports wildcards)
+            - `obs_path`: OBS object path/prefix
+            - `operation`: The operation to perform
 
-          ### 📝 Note
-          For detailed release notes, create a `RELEASE_NOTES.md` file in the repository root before creating the release tag.
-          EOF
+            ### 📝 Note
+            For detailed release notes, create a `RELEASE_NOTES.md` file in the repository root before creating the release tag.
+            EOF
           fi
 
       - name: Create GitHub Release
