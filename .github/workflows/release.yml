@@ -1,0 +1,140 @@
+name: Release and Tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    name: Build and Create Release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build action
+        run: npm run build
+
+      - name: Verify build
+        run: |
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ Build failed"
+            exit 1
+          fi
+          echo "✅ Build successful"
+
+      - name: Get tag version
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="${{ inputs.tag }}"
+          else
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+          fi
+          echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "version=${TAG_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Create release archive
+        run: |
+          mkdir -p release-package
+
+          # Copy essential files for the release
+          cp -r dist/ release-package/
+          cp action.yml release-package/
+          cp README.md release-package/
+          cp package.json release-package/
+
+          # Create tarball
+          tar -czf obs-action-${{ steps.tag.outputs.tag }}.tar.gz -C release-package .
+
+          echo "📦 Release package created:"
+          ls -la obs-action-${{ steps.tag.outputs.tag }}.tar.gz
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          cat > RELEASE_NOTES.md << 'EOF'
+          ## 🚀 OBS Action Release ${{ steps.tag.outputs.tag }}
+
+          ### ✨ Features
+          - High-performance uploads with unlimited file support
+          - Wildcard pattern matching (*, **, ?)
+          - Parallel operations with configurable concurrency
+          - Standardized parameter names: `local_path` and `obs_path`
+          - Support for upload, download, sync, and bucket operations
+
+          ### 🛠️ Usage
+          ```yaml
+          - name: Upload to OBS
+            uses: your-username/obs-enhanced-action@${{ steps.tag.outputs.tag }}
+            with:
+              access_key: ${{ secrets.OBS_ACCESS_KEY }}
+              secret_key: ${{ secrets.OBS_SECRET_KEY }}
+              region: 'cn-north-4'
+              bucket: 'my-bucket'
+              operation: 'upload'
+              local_path: 'dist/**/*'
+              obs_path: 'releases/${{ steps.tag.outputs.tag }}/'
+          ```
+
+          ### 📋 Parameters
+          - `local_path`: Local file/directory paths (supports wildcards)
+          - `obs_path`: OBS object path/prefix
+          - `operation`: upload, download, sync, create-bucket, delete-bucket
+
+          ### 🔧 Technical Details
+          - Built with TypeScript and bundled with ncc
+          - Optimized for GitHub Actions runners
+          - Full source code available in repository
+          EOF
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: OBS Action Helper ${{ steps.tag.outputs.tag }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: obs-action-${{ steps.tag.outputs.tag }}.tar.gz
+          asset_name: obs-action-${{ steps.tag.outputs.tag }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Update major version tag
+        run: |
+          MAJOR_VERSION=$(echo ${{ steps.tag.outputs.tag }} | sed 's/v\([0-9]*\).*/v\1/')
+          git config --local user.email "diverger@live.cn"
+          git config --local user.name "diverger"
+
+          # Create or update major version tag (e.g., v1)
+          git tag -fa ${MAJOR_VERSION} -m "Update ${MAJOR_VERSION} to ${{ steps.tag.outputs.tag }}"
+          git push origin ${MAJOR_VERSION} --force

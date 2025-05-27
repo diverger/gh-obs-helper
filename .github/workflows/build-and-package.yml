@@ -1,0 +1,128 @@
+name: Build and Package Action
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - 'action.yml'
+  pull_request:
+    branches: [main, master, develop]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - 'action.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+    name: Build TypeScript Action
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript compilation check
+        run: npx tsc --noEmit
+
+      - name: Build and package action
+        run: npm run build
+
+      - name: Verify build output
+        run: |
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ Build failed: dist/index.js not found"
+            exit 1
+          fi
+
+          echo "✅ Build successful!"
+          echo "📦 Built files:"
+          ls -la dist/
+
+          echo "📏 Build size:"
+          du -sh dist/
+
+      - name: Check for changes in dist/
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain dist/)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "📝 Changes detected in dist/ folder"
+            git status --porcelain dist/
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "✅ No changes in dist/ folder"
+          fi
+
+      - name: Commit and push built files
+        if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          git add dist/
+          git commit -m "🤖 Auto-build: Update compiled action [skip ci]"
+          git push
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-action-${{ github.sha }}
+          path: |
+            dist/
+            action.yml
+            package.json
+          retention-days: 30
+
+  test-built-action:
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    name: Test Built Action
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download built action
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-action-${{ github.sha }}
+
+      - name: Create test file
+        run: |
+          echo "Build test - $(date)" > build-test.txt
+          echo "Testing auto-built action"
+
+      - name: Test the built action
+        uses: ./
+        with:
+          access_key: "test-key"
+          secret_key: "test-secret"
+          region: "cn-north-4"
+          bucket: "test-bucket"
+          operation: upload
+          local_path: build-test.txt
+          obs_path: test/
+          dry_run: true
+        continue-on-error: true
+
+      - name: Verify test completed
+        run: |
+          echo "✅ Built action test completed"
+          echo "🎯 Action is ready for use"

@@ -2,7 +2,7 @@ name: 'Enhanced OBS Action'
 description: 'High-performance GitHub Action for Huawei Cloud OBS with unlimited file support, wildcard patterns, and parallel uploads'
 author: 'Your Name'
 branding:
-  icon: 'cloud-upload'
+  icon: 'upload-cloud'
   color: 'blue'
 
 inputs:
