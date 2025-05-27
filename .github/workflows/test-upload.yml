@@ -25,7 +25,7 @@ on:
         type: string
 
 env:
-  OBS_BUCKET: ${{ inputs.obs_bucket }}
+  OBS_BUCKET: ${{ inputs.obs_bucket || secrets.OBS_BUCKET }}
   OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
   OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
   OBS_REGION: ${{ inputs.obs_region || 'cn-north-4' }}
