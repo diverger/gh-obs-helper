@@ -1,3 +1,23 @@
+/*
+ * \file file-manager.ts
+ * \date Tuesday, 2025/05/27 17:48:52
+ *
+ * \author diverger <diverger@live.cn>
+ *
+ * \brief File Manager class for handling local file operations
+ *        Supports file discovery, path resolution, streaming MD5 calculation,
+ *        and large file detection for optimized processing.
+ *
+ * Last Modified: Wednesday, 2025/05/28 7:42:19
+ *
+ * Copyright (c) 2025
+ * Licensed under the MIT License
+ * ---------------------------------------------------------
+ * HISTORY:
+ * 2025-05-27	diverger	Initial file management implementation
+ * 2025-05-28	diverger	Added streaming MD5 calculation and large file detection
+ */
+
 import { glob } from 'glob';
 import { promises as fs } from 'fs';
 import { stat } from 'fs/promises';

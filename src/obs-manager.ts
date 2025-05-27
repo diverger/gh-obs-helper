@@ -1,3 +1,22 @@
+/*
+ * \file obs-manager.ts
+ * \date Wednesday, 2025/05/28 1:31:40
+ *
+ * \author diverger <diverger@live.cn>
+ *
+ * \brief OBS Manager class for handling Huawei Cloud Object Storage operations
+ *        Supports upload, download, sync, and bucket management with streaming
+ *        uploads for large files to avoid memory constraints.
+ *
+ * Last Modified: Wednesday, 2025/05/28 7:40:55
+ *
+ * Copyright (c) 2025
+ * Licensed under the MIT License
+ * ---------------------------------------------------------
+ * HISTORY:
+ * 2025-05-28	diverger	Implemented streaming uploads to fix large file buffer overflow
+ */
+
 import ObsClient from 'esdk-obs-nodejs';
 import pLimit from 'p-limit';
 import path from 'path';
