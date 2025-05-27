@@ -81,6 +81,10 @@ outputs:
     description: 'Number of failed operations'
   file_list:
     description: 'List of processed files (JSON array)'
+  upload_urls:
+    description: 'List of URLs for uploaded files (JSON array)'
+  first_upload_url:
+    description: 'URL of the first uploaded file (for single file uploads)'
 
 runs:
   using: 'node20'

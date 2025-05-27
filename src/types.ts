@@ -26,6 +26,7 @@ export interface OperationResult {
   errorCount: number;
   fileList: ProcessedFile[];
   errors: string[];
+  uploadUrls?: string[];
 }
 
 export interface ProcessedFile {
@@ -35,6 +36,7 @@ export interface ProcessedFile {
   status: 'success' | 'error' | 'skipped';
   error?: string;
   checksum?: string;
+  url?: string;
 }
 
 export interface FileOperation {

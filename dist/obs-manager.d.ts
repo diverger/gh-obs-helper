@@ -21,5 +21,7 @@ export declare class OBSManager {
     private createBucket;
     private deleteBucket;
     private delay;
+    private generateObjectUrl;
+    private generateSignedUrl;
     close(): void;
 }
