@@ -24,11 +24,17 @@ on:
         default: 'cn-north-4'
         type: string
 
+env:
+  OBS_BUCKET: ${{ inputs.obs_bucket }}
+  OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
+  OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
+  OBS_REGION: ${{ inputs.obs_region || 'cn-north-4' }}
+
 jobs:
   test-upload:
     runs-on: ubuntu-latest
     name: Test Upload - ${{ inputs.test_scenario }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,7 +45,7 @@ jobs:
           mkdir -p test-files/documents
           mkdir -p test-files/images
           mkdir -p test-files/nested/deep/folder
-          
+
           # Create test files with different sizes
           echo "This is a simple test file" > test-files/simple.txt
           echo "Document content for testing" > test-files/documents/doc1.txt
@@ -47,14 +53,14 @@ jobs:
           echo "Image placeholder content" > test-files/images/image1.jpg
           echo "Another image file" > test-files/images/image2.png
           echo "Deep nested file content" > test-files/nested/deep/folder/deep-file.txt
-          
+
           # Create larger test file (1MB)
           dd if=/dev/zero of=test-files/large-file.bin bs=1024 count=1024
-          
+
           # Create files with special characters
           echo "Special chars test" > "test-files/file with spaces.txt"
           echo "Unicode test 中文测试" > "test-files/unicode-测试.txt"
-          
+
           # List created files
           echo "Created test files:"
           find test-files -type f -exec ls -lh {} \;
@@ -63,10 +69,10 @@ jobs:
         if: inputs.test_scenario == 'single-file'
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/simple.txt
           destination: test-uploads/single/
@@ -77,10 +83,10 @@ jobs:
         if: inputs.test_scenario == 'multiple-files'
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/documents/doc1.txt,test-files/documents/doc2.txt,test-files/images/image1.jpg
           destination: test-uploads/multiple/
@@ -91,10 +97,10 @@ jobs:
         if: inputs.test_scenario == 'directory'
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/
           destination: test-uploads/directory/
@@ -106,10 +112,10 @@ jobs:
         if: inputs.test_scenario == 'wildcard-patterns'
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/**/*.txt
           destination: test-uploads/wildcard/
@@ -121,10 +127,10 @@ jobs:
         if: inputs.test_scenario == 'large-files'
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: upload
           source: test-files/large-file.bin
           destination: test-uploads/large/
