@@ -29,7 +29,7 @@ Copy this template to `RELEASE_NOTES.md` before creating a release tag to provid
 ### 🛠️ Usage Example
 ```yaml
 - name: Upload to OBS
-  uses: your-username/gh-obs-helper@v[VERSION]
+  uses: diverger/gh-obs-helper@v[VERSION]
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -45,4 +45,4 @@ Copy this template to `RELEASE_NOTES.md` before creating a release tag to provid
 - Mention community feedback
 
 ---
-**Full Changelog**: https://github.com/your-username/repo-name/compare/v[PREVIOUS]...v[VERSION]
+**Full Changelog**: https://github.com/diverger/repo-name/compare/v[PREVIOUS]...v[VERSION]
