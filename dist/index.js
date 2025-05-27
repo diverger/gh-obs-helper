@@ -50790,7 +50790,9 @@ class OBSManager {
         const config = {
             access_key_id: this.inputs.accessKey,
             secret_access_key: this.inputs.secretKey,
-            server: this.getServerEndpoint()
+            server: this.getServerEndpoint(),
+            timeout: this.inputs.timeout,
+            max_retry_count: this.inputs.retryCount
         };
         this.client = new esdk_obs_nodejs_1.default(config);
     }
@@ -51378,7 +51380,8 @@ function getInputs() {
         progress: parseBool(core.getInput('progress'), true),
         checksumValidation: parseBool(core.getInput('checksum_validation'), false),
         storageClass: core.getInput('storage_class') || 'STANDARD',
-        publicRead: parseBool(core.getInput('public_read'), false)
+        publicRead: parseBool(core.getInput('public_read'), false),
+        timeout: parseInt(core.getInput('timeout'), 300)
     };
 }
 function setOutputs(result) {
