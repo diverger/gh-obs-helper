@@ -16,7 +16,7 @@ on:
           - large-files
       obs_bucket:
         description: 'OBS bucket name for testing'
-        required: true
+        required: false
         type: string
       obs_region:
         description: 'OBS region'
