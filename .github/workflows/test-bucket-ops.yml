@@ -1,0 +1,80 @@
+name: Test Bucket Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Bucket operation to test'
+        required: true
+        default: 'create-bucket'
+        type: choice
+        options:
+          - create-bucket
+          - delete-bucket
+      test_bucket_name:
+        description: 'Test bucket name (will be auto-generated if empty)'
+        required: false
+        type: string
+      obs_region:
+        description: 'OBS region'
+        required: false
+        default: 'cn-north-4'
+        type: string
+
+jobs:
+  test-bucket-ops:
+    runs-on: ubuntu-latest
+    name: Test Bucket Operations - ${{ inputs.operation }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate test bucket name
+        id: bucket-name
+        run: |
+          if [ -n "${{ inputs.test_bucket_name }}" ]; then
+            BUCKET_NAME="${{ inputs.test_bucket_name }}"
+          else
+            # Generate unique bucket name with timestamp
+            TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+            BUCKET_NAME="test-obs-action-${TIMESTAMP}"
+          fi
+          echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
+          echo "Generated bucket name: ${BUCKET_NAME}"
+
+      - name: Test Create Bucket
+        if: inputs.operation == 'create-bucket'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ steps.bucket-name.outputs.bucket_name }}
+          operation: create-bucket
+          storage_class: STANDARD
+          public_read: false
+          progress: true
+
+      - name: Verify Bucket Creation
+        if: inputs.operation == 'create-bucket'
+        run: |
+          echo "Bucket '${{ steps.bucket-name.outputs.bucket_name }}' should now be created"
+          echo "You can verify this in the Huawei Cloud Console"
+
+      - name: Test Delete Bucket
+        if: inputs.operation == 'delete-bucket'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ steps.bucket-name.outputs.bucket_name }}
+          operation: delete-bucket
+          progress: true
+
+      - name: Verify Bucket Deletion
+        if: inputs.operation == 'delete-bucket'
+        run: |
+          echo "Bucket '${{ steps.bucket-name.outputs.bucket_name }}' should now be deleted"
+          echo "You can verify this in the Huawei Cloud Console"

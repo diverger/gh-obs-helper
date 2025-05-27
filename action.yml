@@ -1,0 +1,87 @@
+name: 'Enhanced OBS Action'
+description: 'High-performance GitHub Action for Huawei Cloud OBS with unlimited file support, wildcard patterns, and parallel uploads'
+author: 'Your Name'
+branding:
+  icon: 'cloud-upload'
+  color: 'blue'
+
+inputs:
+  access_key:
+    description: 'Huawei Cloud Access Key ID'
+    required: true
+  secret_key:
+    description: 'Huawei Cloud Secret Access Key'
+    required: true
+  region:
+    description: 'OBS region (e.g., cn-north-4, ap-southeast-1)'
+    required: true
+    default: 'cn-north-4'
+  bucket_name:
+    description: 'OBS bucket name'
+    required: true
+  operation:
+    description: 'Operation type: upload, download, sync, create-bucket, delete-bucket'
+    required: true
+    default: 'upload'
+  source:
+    description: 'Source path(s) - supports wildcards (*, **, ?), multiple patterns separated by commas'
+    required: false
+  destination:
+    description: 'Destination path in OBS bucket'
+    required: false
+  include:
+    description: 'Include patterns (comma-separated)'
+    required: false
+  exclude:
+    description: 'Exclude patterns (comma-separated)'
+    required: false
+  preserve_structure:
+    description: 'Preserve directory structure (true/false)'
+    required: false
+    default: 'true'
+  concurrency:
+    description: 'Maximum number of parallel uploads/downloads'
+    required: false
+    default: '10'
+  retry_count:
+    description: 'Number of retries for failed operations'
+    required: false
+    default: '3'
+  dry_run:
+    description: 'Preview operations without executing (true/false)'
+    required: false
+    default: 'false'
+  progress:
+    description: 'Show detailed progress logs (true/false)'
+    required: false
+    default: 'true'
+  checksum_validation:
+    description: 'Validate file checksums after upload (true/false)'
+    required: false
+    default: 'false'
+  storage_class:
+    description: 'OBS storage class (STANDARD, WARM, COLD)'
+    required: false
+    default: 'STANDARD'
+  public_read:
+    description: 'Make uploaded objects public readable (true/false)'
+    required: false
+    default: 'false'
+
+outputs:
+  files_processed:
+    description: 'Number of files processed'
+  bytes_transferred:
+    description: 'Total bytes transferred'
+  operation_time:
+    description: 'Total operation time in seconds'
+  success_count:
+    description: 'Number of successful operations'
+  error_count:
+    description: 'Number of failed operations'
+  file_list:
+    description: 'List of processed files (JSON array)'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

@@ -1,0 +1,253 @@
+name: Comprehensive OBS Action Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      obs_bucket:
+        description: 'OBS bucket name for testing'
+        required: true
+        type: string
+      obs_region:
+        description: 'OBS region'
+        required: false
+        default: 'cn-north-4'
+        type: string
+      run_upload_tests:
+        description: 'Run upload tests'
+        required: false
+        default: true
+        type: boolean
+      run_download_tests:
+        description: 'Run download tests'
+        required: false
+        default: false
+        type: boolean
+      run_sync_tests:
+        description: 'Run sync tests'
+        required: false
+        default: false
+        type: boolean
+      cleanup_after_test:
+        description: 'Cleanup test files after completion'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Action
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build action
+        run: npm run build
+
+      - name: Upload built action
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-action
+          path: |
+            dist/
+            action.yml
+            package.json
+
+  upload-tests:
+    needs: build
+    if: inputs.run_upload_tests
+    runs-on: ubuntu-latest
+    name: Upload Tests
+    strategy:
+      matrix:
+        test_case:
+          - name: "Single File"
+            files: "single-test.txt"
+            destination: "test-uploads/single/"
+          - name: "Multiple Files"
+            files: "multi-test-1.txt,multi-test-2.txt,multi-test-3.txt"
+            destination: "test-uploads/multiple/"
+          - name: "Directory Structure"
+            files: "test-dir/"
+            destination: "test-uploads/directory/"
+          - name: "Wildcard Pattern"
+            files: "test-wildcard/**/*.txt"
+            destination: "test-uploads/wildcard/"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download built action
+        uses: actions/download-artifact@v4
+        with:
+          name: built-action
+
+      - name: Create test files for ${{ matrix.test_case.name }}
+        run: |
+          case "${{ matrix.test_case.name }}" in
+            "Single File")
+              echo "Single file test content - $(date)" > single-test.txt
+              ;;
+            "Multiple Files")
+              echo "Multi file 1 content - $(date)" > multi-test-1.txt
+              echo "Multi file 2 content - $(date)" > multi-test-2.txt
+              echo "Multi file 3 content - $(date)" > multi-test-3.txt
+              ;;
+            "Directory Structure")
+              mkdir -p test-dir/subdir1 test-dir/subdir2
+              echo "Dir file 1 - $(date)" > test-dir/file1.txt
+              echo "Dir file 2 - $(date)" > test-dir/subdir1/file2.txt
+              echo "Dir file 3 - $(date)" > test-dir/subdir2/file3.txt
+              ;;
+            "Wildcard Pattern")
+              mkdir -p test-wildcard/docs test-wildcard/logs
+              echo "Wildcard doc 1 - $(date)" > test-wildcard/docs/doc1.txt
+              echo "Wildcard doc 2 - $(date)" > test-wildcard/docs/doc2.txt
+              echo "Wildcard log 1 - $(date)" > test-wildcard/logs/log1.txt
+              echo "Binary file" > test-wildcard/binary.bin  # Should be excluded
+              ;;
+          esac
+
+          echo "Created files for ${{ matrix.test_case.name }}:"
+          find . -name "*.txt" -o -name "test-dir" -o -name "test-wildcard" | head -20
+
+      - name: Test Upload - ${{ matrix.test_case.name }}
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: upload
+          source: ${{ matrix.test_case.files }}
+          destination: ${{ matrix.test_case.destination }}
+          preserve_structure: true
+          progress: true
+          concurrency: 5
+          exclude: "*.bin"
+
+  download-tests:
+    needs: [build, upload-tests]
+    if: inputs.run_download_tests && always()
+    runs-on: ubuntu-latest
+    name: Download Tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download built action
+        uses: actions/download-artifact@v4
+        with:
+          name: built-action
+
+      - name: Test Download Single File
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: download
+          source: test-uploads/single/single-test.txt
+          destination: downloads/
+          progress: true
+
+      - name: Test Download Directory
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: download
+          source: test-uploads/directory/
+          destination: downloads/directory/
+          preserve_structure: true
+          progress: true
+
+      - name: Verify Downloads
+        run: |
+          echo "Downloaded files:"
+          find downloads -type f 2>/dev/null || echo "No files downloaded"
+
+  sync-tests:
+    needs: [build, upload-tests]
+    if: inputs.run_sync_tests && always()
+    runs-on: ubuntu-latest
+    name: Sync Tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download built action
+        uses: actions/download-artifact@v4
+        with:
+          name: built-action
+
+      - name: Create sync test files
+        run: |
+          mkdir -p sync-local
+          echo "Sync file 1 - $(date)" > sync-local/sync1.txt
+          echo "Sync file 2 - $(date)" > sync-local/sync2.txt
+
+      - name: Test Sync Upload
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: sync
+          source: sync-local/
+          destination: test-uploads/sync/
+          preserve_structure: true
+          progress: true
+
+  cleanup:
+    needs: [upload-tests, download-tests, sync-tests]
+    if: inputs.cleanup_after_test && always()
+    runs-on: ubuntu-latest
+    name: Cleanup Test Files
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download built action
+        uses: actions/download-artifact@v4
+        with:
+          name: built-action
+
+      - name: Cleanup test files from OBS
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: delete
+          source: test-uploads/
+          progress: true
+        continue-on-error: true
+
+      - name: Test Summary
+        run: |
+          echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Bucket: ${{ inputs.obs_bucket }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Region: ${{ inputs.obs_region }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Upload Tests: ${{ inputs.run_upload_tests }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Download Tests: ${{ inputs.run_download_tests }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Sync Tests: ${{ inputs.run_sync_tests }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Cleanup: ${{ inputs.cleanup_after_test }}" >> $GITHUB_STEP_SUMMARY

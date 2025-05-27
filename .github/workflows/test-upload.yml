@@ -1,0 +1,145 @@
+name: Test File Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_scenario:
+        description: 'Test scenario to run'
+        required: true
+        default: 'single-file'
+        type: choice
+        options:
+          - single-file
+          - multiple-files
+          - directory
+          - wildcard-patterns
+          - large-files
+      obs_bucket:
+        description: 'OBS bucket name for testing'
+        required: true
+        type: string
+      obs_region:
+        description: 'OBS region'
+        required: false
+        default: 'cn-north-4'
+        type: string
+
+jobs:
+  test-upload:
+    runs-on: ubuntu-latest
+    name: Test Upload - ${{ inputs.test_scenario }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        run: |
+          # Create test directory structure
+          mkdir -p test-files/documents
+          mkdir -p test-files/images
+          mkdir -p test-files/nested/deep/folder
+          
+          # Create test files with different sizes
+          echo "This is a simple test file" > test-files/simple.txt
+          echo "Document content for testing" > test-files/documents/doc1.txt
+          echo "Another document for batch testing" > test-files/documents/doc2.txt
+          echo "Image placeholder content" > test-files/images/image1.jpg
+          echo "Another image file" > test-files/images/image2.png
+          echo "Deep nested file content" > test-files/nested/deep/folder/deep-file.txt
+          
+          # Create larger test file (1MB)
+          dd if=/dev/zero of=test-files/large-file.bin bs=1024 count=1024
+          
+          # Create files with special characters
+          echo "Special chars test" > "test-files/file with spaces.txt"
+          echo "Unicode test 中文测试" > "test-files/unicode-测试.txt"
+          
+          # List created files
+          echo "Created test files:"
+          find test-files -type f -exec ls -lh {} \;
+
+      - name: Test Single File Upload
+        if: inputs.test_scenario == 'single-file'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: upload
+          source: test-files/simple.txt
+          destination: test-uploads/single/
+          progress: true
+          dry_run: false
+
+      - name: Test Multiple Files Upload
+        if: inputs.test_scenario == 'multiple-files'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: upload
+          source: test-files/documents/doc1.txt,test-files/documents/doc2.txt,test-files/images/image1.jpg
+          destination: test-uploads/multiple/
+          progress: true
+          concurrency: 3
+
+      - name: Test Directory Upload
+        if: inputs.test_scenario == 'directory'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: upload
+          source: test-files/
+          destination: test-uploads/directory/
+          preserve_structure: true
+          progress: true
+          concurrency: 5
+
+      - name: Test Wildcard Patterns Upload
+        if: inputs.test_scenario == 'wildcard-patterns'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: upload
+          source: test-files/**/*.txt
+          destination: test-uploads/wildcard/
+          exclude: "*.bin,*large*"
+          preserve_structure: true
+          progress: true
+
+      - name: Test Large Files Upload
+        if: inputs.test_scenario == 'large-files'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: upload
+          source: test-files/large-file.bin
+          destination: test-uploads/large/
+          progress: true
+          checksum_validation: true
+          storage_class: STANDARD
+          retry_count: 5
+
+      - name: Verify Upload Results
+        run: |
+          echo "Upload test completed for scenario: ${{ inputs.test_scenario }}"
+          echo "Check the action outputs and OBS bucket for uploaded files"
+
+      - name: Cleanup Test Files
+        if: always()
+        run: |
+          rm -rf test-files/
+          echo "Test files cleaned up"

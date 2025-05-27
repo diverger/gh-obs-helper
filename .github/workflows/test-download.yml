@@ -1,0 +1,122 @@
+name: Test Download Function
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_scenario:
+        description: 'Download test scenario'
+        required: true
+        default: 'single-file'
+        type: choice
+        options:
+          - single-file
+          - multiple-files
+          - directory
+          - wildcard-download
+      obs_bucket:
+        description: 'OBS bucket name for testing'
+        required: true
+        type: string
+      obs_region:
+        description: 'OBS region'
+        required: false
+        default: 'cn-north-4'
+        type: string
+      remote_path:
+        description: 'Remote path to download from'
+        required: false
+        default: 'test-uploads/'
+        type: string
+
+jobs:
+  test-download:
+    runs-on: ubuntu-latest
+    name: Test Download - ${{ inputs.test_scenario }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare download directory
+        run: |
+          mkdir -p downloads
+          echo "Download directory created"
+
+      - name: Test Single File Download
+        if: inputs.test_scenario == 'single-file'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: download
+          source: ${{ inputs.remote_path }}simple.txt
+          destination: downloads/
+          progress: true
+
+      - name: Test Multiple Files Download
+        if: inputs.test_scenario == 'multiple-files'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: download
+          source: ${{ inputs.remote_path }}multiple/
+          destination: downloads/multiple/
+          concurrency: 3
+          progress: true
+
+      - name: Test Directory Download
+        if: inputs.test_scenario == 'directory'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: download
+          source: ${{ inputs.remote_path }}directory/
+          destination: downloads/directory/
+          preserve_structure: true
+          progress: true
+          concurrency: 5
+
+      - name: Test Wildcard Download
+        if: inputs.test_scenario == 'wildcard-download'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: download
+          source: ${{ inputs.remote_path }}**/*.txt
+          destination: downloads/wildcard/
+          exclude: "*large*"
+          preserve_structure: true
+          progress: true
+
+      - name: Verify Downloaded Files
+        run: |
+          echo "Downloaded files:"
+          find downloads -type f -exec ls -lh {} \;
+          
+          echo "File contents verification:"
+          if [ -f "downloads/simple.txt" ]; then
+            echo "simple.txt content:"
+            cat downloads/simple.txt
+          fi
+          
+          if [ -d "downloads/multiple" ]; then
+            echo "Multiple files directory:"
+            ls -la downloads/multiple/
+          fi
+
+      - name: Cleanup Downloads
+        if: always()
+        run: |
+          rm -rf downloads/
+          echo "Downloaded files cleaned up"

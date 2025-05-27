@@ -1,0 +1,57 @@
+name: Quick Test - File Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      obs_bucket:
+        description: 'OBS bucket name'
+        required: true
+        type: string
+      test_file_content:
+        description: 'Content for test file'
+        required: false
+        default: 'Hello from GitHub Actions!'
+        type: string
+
+jobs:
+  quick-upload-test:
+    runs-on: ubuntu-latest
+    name: Quick Upload Test
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build the action
+        run: |
+          npm ci
+          npm run build
+
+      - name: Create test file
+        run: |
+          echo "${{ inputs.test_file_content }}" > test-file.txt
+          echo "Created test file with content:"
+          cat test-file.txt
+
+      - name: Test file upload
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: cn-north-4
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: upload
+          source: test-file.txt
+          destination: quick-test/
+          progress: true
+          dry_run: false
+
+      - name: Verify upload
+        run: |
+          echo "Upload completed successfully!"
+          echo "Check your OBS bucket '${{ inputs.obs_bucket }}' for the file at 'quick-test/test-file.txt'"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f test-file.txt

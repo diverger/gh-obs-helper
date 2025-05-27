@@ -1,0 +1,142 @@
+name: Test Sync Function
+
+on:
+  workflow_dispatch:
+    inputs:
+      sync_direction:
+        description: 'Sync direction'
+        required: true
+        default: 'local-to-remote'
+        type: choice
+        options:
+          - local-to-remote
+          - remote-to-local
+          - bidirectional
+      obs_bucket:
+        description: 'OBS bucket name for testing'
+        required: true
+        type: string
+      obs_region:
+        description: 'OBS region'
+        required: false
+        default: 'cn-north-4'
+        type: string
+      remote_prefix:
+        description: 'Remote prefix/path'
+        required: false
+        default: 'sync-test/'
+        type: string
+
+jobs:
+  test-sync:
+    runs-on: ubuntu-latest
+    name: Test Sync - ${{ inputs.sync_direction }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup sync test environment
+        run: |
+          # Create local sync directory
+          mkdir -p sync-test/local
+          mkdir -p sync-test/remote-download
+          
+          # Create test files for sync
+          echo "File 1 content" > sync-test/local/file1.txt
+          echo "File 2 content" > sync-test/local/file2.txt
+          echo "Modified file content" > sync-test/local/modified.txt
+          
+          # Create subdirectory
+          mkdir -p sync-test/local/subdir
+          echo "Subdirectory file" > sync-test/local/subdir/sub-file.txt
+          
+          echo "Sync test environment created:"
+          find sync-test -type f -exec ls -lh {} \;
+
+      - name: Test Local to Remote Sync
+        if: inputs.sync_direction == 'local-to-remote'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: sync
+          source: sync-test/local/
+          destination: ${{ inputs.remote_prefix }}
+          preserve_structure: true
+          progress: true
+          concurrency: 3
+          checksum_validation: true
+
+      - name: Test Remote to Local Sync
+        if: inputs.sync_direction == 'remote-to-local'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: sync
+          source: ${{ inputs.remote_prefix }}
+          destination: sync-test/remote-download/
+          preserve_structure: true
+          progress: true
+          concurrency: 3
+
+      - name: Test Bidirectional Sync (Upload first)
+        if: inputs.sync_direction == 'bidirectional'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: sync
+          source: sync-test/local/
+          destination: ${{ inputs.remote_prefix }}bidirectional/
+          preserve_structure: true
+          progress: true
+
+      - name: Modify local files for bidirectional test
+        if: inputs.sync_direction == 'bidirectional'
+        run: |
+          # Modify existing file
+          echo "Modified content for bidirectional test" > sync-test/local/modified.txt
+          # Add new file
+          echo "New file for bidirectional test" > sync-test/local/new-file.txt
+          # Remove a file
+          rm -f sync-test/local/file2.txt
+
+      - name: Test Bidirectional Sync (Second sync)
+        if: inputs.sync_direction == 'bidirectional'
+        uses: ./
+        with:
+          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
+          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
+          region: ${{ inputs.obs_region }}
+          bucket_name: ${{ inputs.obs_bucket }}
+          operation: sync
+          source: sync-test/local/
+          destination: ${{ inputs.remote_prefix }}bidirectional/
+          preserve_structure: true
+          progress: true
+
+      - name: Verify Sync Results
+        run: |
+          echo "Sync test completed for: ${{ inputs.sync_direction }}"
+          
+          if [ "${{ inputs.sync_direction }}" = "remote-to-local" ]; then
+            echo "Downloaded files:"
+            find sync-test/remote-download -type f -exec ls -lh {} \; 2>/dev/null || echo "No files downloaded"
+          fi
+          
+          echo "Local files after sync:"
+          find sync-test/local -type f -exec ls -lh {} \; 2>/dev/null || echo "No local files"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf sync-test/
+          echo "Sync test files cleaned up"
