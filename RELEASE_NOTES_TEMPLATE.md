@@ -45,4 +45,4 @@ Copy this template to `RELEASE_NOTES.md` before creating a release tag to provid
 - Mention community feedback
 
 ---
-**Full Changelog**: https://github.com/diverger/repo-name/compare/v[PREVIOUS]...v[VERSION]
+**Full Changelog**: https://github.com/diverger/gh-obs-helper/compare/v[PREVIOUS]...v[VERSION]
