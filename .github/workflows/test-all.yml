@@ -33,6 +33,12 @@ on:
         default: true
         type: boolean
 
+env:
+  OBS_BUCKET: ${{ inputs.obs_bucket }}
+  OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
+  OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
+  OBS_REGION: ${{ inputs.obs_region || 'cn-north-4' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,24 +47,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build action
-        run: npm run build
-
-      - name: Upload built action
-        uses: actions/upload-artifact@v4
-        with:
-          name: built-action
-          path: |
-            dist/
+      - name: Setup test environment
+        run: |
+          # Generate test files dynamically
+          chmod +x generate-test-files.sh
+          ./generate-test-files.sh
             action.yml
             package.json
 
@@ -124,10 +117,10 @@ jobs:
       - name: Test Upload - ${{ matrix.test_case.name }}
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: upload
           source: ${{ matrix.test_case.files }}
           destination: ${{ matrix.test_case.destination }}
@@ -154,10 +147,10 @@ jobs:
       - name: Test Download Single File
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: download
           source: test-uploads/single/single-test.txt
           destination: downloads/
@@ -166,10 +159,10 @@ jobs:
       - name: Test Download Directory
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: download
           source: test-uploads/directory/
           destination: downloads/directory/
@@ -205,10 +198,10 @@ jobs:
       - name: Test Sync Upload
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: sync
           source: sync-local/
           destination: test-uploads/sync/
@@ -233,10 +226,10 @@ jobs:
       - name: Cleanup test files from OBS
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
-          bucket_name: ${{ inputs.obs_bucket }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
+          bucket_name: ${{ env.OBS_BUCKET }}
           operation: delete
           source: test-uploads/
           progress: true

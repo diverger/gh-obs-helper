@@ -162,6 +162,35 @@ Adjust concurrency based on your needs:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## 🧪 Testing
+
+### Dynamic Test File Generation
+
+This action includes comprehensive test workflows that generate test files dynamically:
+
+```bash
+# Generate test files locally
+chmod +x generate-test-files.sh
+./generate-test-files.sh
+```
+
+The script creates:
+- **Text files** with various content types
+- **Binary files** (1MB test file)
+- **Special characters** and Unicode filenames
+- **Nested directory** structures
+- **Configuration files** (JSON, conf, etc.)
+- **Web assets** (CSS, JS)
+- **Log files** with sample data
+
+### Test Workflows
+
+- **Quick Test** (`quick-test.yml`) - Single file upload test
+- **Upload Tests** (`test-upload.yml`) - Comprehensive upload scenarios
+- **All Operations** (`test-all.yml`) - Full feature testing
+
+Test files are generated dynamically in workflows, keeping the repository clean.
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

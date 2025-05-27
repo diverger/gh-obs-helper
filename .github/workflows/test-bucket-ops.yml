@@ -21,11 +21,16 @@ on:
         default: 'cn-north-4'
         type: string
 
+env:
+  OBS_KEY_ID: ${{ secrets.OBS_KEY_ID }}
+  OBS_KEY_SECRET: ${{ secrets.OBS_KEY_SECRET }}
+  OBS_REGION: ${{ inputs.obs_region || 'cn-north-4' }}
+
 jobs:
   test-bucket-ops:
     runs-on: ubuntu-latest
     name: Test Bucket Operations - ${{ inputs.operation }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,9 +52,9 @@ jobs:
         if: inputs.operation == 'create-bucket'
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
           bucket_name: ${{ steps.bucket-name.outputs.bucket_name }}
           operation: create-bucket
           storage_class: STANDARD
@@ -66,9 +71,9 @@ jobs:
         if: inputs.operation == 'delete-bucket'
         uses: ./
         with:
-          access_key: ${{ secrets.HUAWEI_ACCESS_KEY }}
-          secret_key: ${{ secrets.HUAWEI_SECRET_KEY }}
-          region: ${{ inputs.obs_region }}
+          access_key: ${{ env.OBS_KEY_ID }}
+          secret_key: ${{ env.OBS_KEY_SECRET }}
+          region: ${{ env.OBS_REGION }}
           bucket_name: ${{ steps.bucket-name.outputs.bucket_name }}
           operation: delete-bucket
           progress: true

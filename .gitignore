@@ -64,3 +64,9 @@ temp/
 
 # Build artifacts (KEEP dist/ for GitHub Actions)
 # dist/ - DO NOT ignore this for GitHub Actions!
+
+# Test files (generated dynamically)
+test-files/
+
+# Test files - ignore large binary files
+test-files/large-file.bin

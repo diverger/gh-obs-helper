@@ -41,29 +41,9 @@ jobs:
 
       - name: Setup test environment
         run: |
-          # Create test directory structure
-          mkdir -p test-files/documents
-          mkdir -p test-files/images
-          mkdir -p test-files/nested/deep/folder
-
-          # Create test files with different sizes
-          echo "This is a simple test file" > test-files/simple.txt
-          echo "Document content for testing" > test-files/documents/doc1.txt
-          echo "Another document for batch testing" > test-files/documents/doc2.txt
-          echo "Image placeholder content" > test-files/images/image1.jpg
-          echo "Another image file" > test-files/images/image2.png
-          echo "Deep nested file content" > test-files/nested/deep/folder/deep-file.txt
-
-          # Create larger test file (1MB)
-          dd if=/dev/zero of=test-files/large-file.bin bs=1024 count=1024
-
-          # Create files with special characters
-          echo "Special chars test" > "test-files/file with spaces.txt"
-          echo "Unicode test 中文测试" > "test-files/unicode-测试.txt"
-
-          # List created files
-          echo "Created test files:"
-          find test-files -type f -exec ls -lh {} \;
+          # Make script executable and run it
+          chmod +x generate-test-files.sh
+          ./generate-test-files.sh
 
       - name: Test Single File Upload
         if: inputs.test_scenario == 'single-file'
