@@ -5,7 +5,7 @@ on:
     inputs:
       obs_bucket:
         description: 'OBS bucket name'
-        required: true
+        required: false
         type: string
       test_file_content:
         description: 'Content for test file'
