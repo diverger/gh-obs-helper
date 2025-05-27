@@ -1,7 +1,7 @@
 {
-  "name": "obs-enhanced-action",
+  "name": "gh-obs-helper",
   "version": "1.0.0",
-  "description": "Enhanced GitHub Action for Huawei Cloud OBS operations with unlimited file support and wildcard patterns",
+  "description": "GitHub Action for Huawei Cloud OBS operations with unlimited file support and wildcard patterns",
   "main": "dist/index.js",
   "scripts": {
     "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",

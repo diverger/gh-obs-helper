@@ -64,28 +64,32 @@ jobs:
           cp package.json release-package/
 
           # Create tarball
-          tar -czf obs-action-${{ steps.tag.outputs.tag }}.tar.gz -C release-package .
+          tar -czf gh-obs-helper-${{ steps.tag.outputs.tag }}.tar.gz -C release-package .
 
           echo "📦 Release package created:"
-          ls -la obs-action-${{ steps.tag.outputs.tag }}.tar.gz
+          ls -la gh-obs-helper-${{ steps.tag.outputs.tag }}.tar.gz
 
-      - name: Generate changelog
-        id: changelog
+      - name: Check for manual release notes
+        id: release_notes
         run: |
-          cat > RELEASE_NOTES.md << 'EOF'
-          ## 🚀 OBS Action Release ${{ steps.tag.outputs.tag }}
+          if [ -f "RELEASE_NOTES.md" ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "✅ Using manual release notes from RELEASE_NOTES.md"
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "⚠️  No RELEASE_NOTES.md found, generating basic release notes"
 
-          ### ✨ Features
-          - High-performance uploads with unlimited file support
-          - Wildcard pattern matching (*, **, ?)
-          - Parallel operations with configurable concurrency
-          - Standardized parameter names: `local_path` and `obs_path`
-          - Support for upload, download, sync, and bucket operations
+            # Generate basic release notes as fallback
+            cat > RELEASE_NOTES.md << 'EOF'
+          ## 🚀 GH OBS Helper Release ${{ steps.tag.outputs.tag }}
+
+          ### Release Information
+          This is an automated release of the GH OBS Helper.
 
           ### 🛠️ Usage
           ```yaml
           - name: Upload to OBS
-            uses: your-username/obs-enhanced-action@${{ steps.tag.outputs.tag }}
+            uses: diverger/gh-obs-helper@${{ steps.tag.outputs.tag }}
             with:
               access_key: ${{ secrets.OBS_ACCESS_KEY }}
               secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -96,16 +100,22 @@ jobs:
               obs_path: 'releases/${{ steps.tag.outputs.tag }}/'
           ```
 
+          ### 📋 Available Operations
+          - `upload`: Upload files to OBS
+          - `download`: Download files from OBS
+          - `sync`: Synchronize local and OBS directories
+          - `create-bucket`: Create a new OBS bucket
+          - `delete-bucket`: Delete an OBS bucket
+
           ### 📋 Parameters
           - `local_path`: Local file/directory paths (supports wildcards)
           - `obs_path`: OBS object path/prefix
-          - `operation`: upload, download, sync, create-bucket, delete-bucket
+          - `operation`: The operation to perform
 
-          ### 🔧 Technical Details
-          - Built with TypeScript and bundled with ncc
-          - Optimized for GitHub Actions runners
-          - Full source code available in repository
+          ### 📝 Note
+          For detailed release notes, create a `RELEASE_NOTES.md` file in the repository root before creating the release tag.
           EOF
+          fi
 
       - name: Create GitHub Release
         id: create_release
@@ -114,7 +124,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: OBS Action Helper ${{ steps.tag.outputs.tag }}
+          release_name: GH OBS Helper ${{ steps.tag.outputs.tag }}
           body_path: RELEASE_NOTES.md
           draft: false
           prerelease: false
@@ -125,8 +135,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: obs-action-${{ steps.tag.outputs.tag }}.tar.gz
-          asset_name: obs-action-${{ steps.tag.outputs.tag }}.tar.gz
+          asset_path: gh-obs-helper-${{ steps.tag.outputs.tag }}.tar.gz
+          asset_name: gh-obs-helper-${{ steps.tag.outputs.tag }}.tar.gz
           asset_content_type: application/gzip
 
       - name: Update major version tag

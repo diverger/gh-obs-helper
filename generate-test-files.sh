@@ -4,7 +4,7 @@
 
 set -e
 
-echo "Creating test files for OBS Action testing..."
+echo "Creating test files for GH OBS Helper testing..."
 
 # Create directory structure
 mkdir -p test-files/{documents,images,nested/deep/folder,assets/{css,js},config,logs}

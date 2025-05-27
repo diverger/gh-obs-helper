@@ -1,4 +1,4 @@
-# Enhanced OBS Action
+# GH OBS Helper
 
 A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) with unlimited file support, wildcard patterns, and parallel uploads.
 
@@ -18,7 +18,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
 
 ```yaml
 - name: Upload to OBS
-  uses: your-username/obs-enhanced-action@v1
+  uses: diverger/gh-obs-helper@v1
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -34,7 +34,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
 ### Basic Upload
 ```yaml
 - name: Upload files
-  uses: your-username/obs-enhanced-action@v1
+  uses: diverger/gh-obs-helper@v1
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -48,7 +48,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
 ### Multiple Patterns with Exclusions
 ```yaml
 - name: Upload with patterns
-  uses: your-username/obs-enhanced-action@v1
+  uses: diverger/gh-obs-helper@v1
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -64,7 +64,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
 ### High-Performance Upload
 ```yaml
 - name: Fast parallel upload
-  uses: your-username/obs-enhanced-action@v1
+  uses: diverger/gh-obs-helper@v1
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -80,7 +80,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
 ### Bucket Management
 ```yaml
 - name: Create bucket
-  uses: your-username/obs-enhanced-action@v1
+  uses: diverger/gh-obs-helper@v1
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}

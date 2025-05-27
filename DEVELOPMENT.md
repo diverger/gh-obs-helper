@@ -1,6 +1,6 @@
 # Development Guide
 
-This guide explains how to develop, build, and release the OBS Action Helper.
+This guide explains how to develop, build, and release the GH OBS Helper.
 
 ## 🏗️ Build Process
 
@@ -81,16 +81,73 @@ When you push to main/master/develop:
 
 ### 3. Creating Releases
 
-#### Option A: Git Tags
+#### Option A: Git Tags (with Manual Release Notes)
+```bash
+# 1. Create manual release notes
+cp RELEASE_NOTES_TEMPLATE.md RELEASE_NOTES.md
+# Edit RELEASE_NOTES.md with your release details
+
+# 2. Commit the release notes
+git add RELEASE_NOTES.md
+git commit -m "docs: Add release notes for v1.0.0"
+
+# 3. Create and push the tag
+git tag v1.0.0
+git push origin v1.0.0
+
+# 4. Clean up (optional)
+git rm RELEASE_NOTES.md
+git commit -m "docs: Remove release notes after release"
+```
+
+#### Option B: Git Tags (Auto-generated Notes)
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-#### Option B: Manual Dispatch
+#### Option C: Manual Dispatch
 1. Go to Actions → Release and Tag
 2. Click "Run workflow"
 3. Enter tag version (e.g., `v1.0.0`)
+4. If you want custom notes, create `RELEASE_NOTES.md` first
+
+## 📝 Creating Manual Release Notes
+
+### Best Practice: Manual Release Notes
+
+For professional releases, create detailed release notes manually:
+
+1. **Copy the template:**
+   ```bash
+   cp RELEASE_NOTES_TEMPLATE.md RELEASE_NOTES.md
+   ```
+
+2. **Edit RELEASE_NOTES.md** with:
+   - New features and improvements
+   - Bug fixes and changes
+   - Breaking changes (if any)
+   - Migration instructions
+   - Usage examples
+
+3. **Create release:**
+   ```bash
+   # Commit release notes
+   git add RELEASE_NOTES.md
+   git commit -m "docs: Add release notes for v1.0.0"
+
+   # Create and push tag
+   git tag v1.0.0
+   git push origin v1.0.0
+
+   # Optional: Clean up after release
+   git rm RELEASE_NOTES.md
+   git commit -m "docs: Remove release notes after release"
+   ```
+
+### Automatic Release Notes (Fallback)
+
+If no `RELEASE_NOTES.md` exists, the workflow generates basic release notes automatically.
 
 ## 🧪 Testing
 
@@ -113,7 +170,7 @@ git push origin v1.0.0
 ### For Users
 Users reference the action like:
 ```yaml
-uses: your-username/obs-enhanced-action@v1
+uses: your-username/gh-obs-helper@v1
 ```
 
 ### For Contributors

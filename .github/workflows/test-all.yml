@@ -1,4 +1,4 @@
-name: Comprehensive OBS Action Tests
+name: Comprehensive GH OBS Helper Tests
 
 on:
   workflow_dispatch:

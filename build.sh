@@ -1,11 +1,11 @@
 #!/bin/bash
-# Build script for OBS Action Helper
+# Build script for GH OBS Helper
 # This script builds the action and prepares it for GitHub Actions usage
 
 set -e
 
-echo "🔧 Building OBS Action Helper..."
-echo "================================="
+echo "🔧 Building GH OBS Helper..."
+echo "============================"
 
 # Check if we're in the right directory
 if [ ! -f "package.json" ] || [ ! -f "action.yml" ]; then
