@@ -47,6 +47,15 @@ export function setOutputs(result: import('./types').OperationResult): void {
   core.setOutput('success_count', result.successCount.toString());
   core.setOutput('error_count', result.errorCount.toString());
   core.setOutput('file_list', JSON.stringify(result.fileList));
+
+  // Set URL outputs for upload operations
+  if (result.uploadUrls && result.uploadUrls.length > 0) {
+    core.setOutput('upload_urls', JSON.stringify(result.uploadUrls));
+    core.setOutput('first_upload_url', result.uploadUrls[0]);
+  } else {
+    core.setOutput('upload_urls', JSON.stringify([]));
+    core.setOutput('first_upload_url', '');
+  }
 }
 
 export function logProgress(message: string, progress: boolean = true): void {

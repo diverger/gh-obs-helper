@@ -1,0 +1,148 @@
+name: Example - URL Usage
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_file:
+        description: 'Test file to upload'
+        required: false
+        default: 'test-files/simple.txt'
+
+jobs:
+  url-examples:
+    runs-on: ubuntu-latest
+    name: Demonstrate URL Output Usage
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Upload single file (public)
+        id: upload_public
+        uses: ./
+        with:
+          access_key: ${{ secrets.OBS_ACCESS_KEY }}
+          secret_key: ${{ secrets.OBS_SECRET_KEY }}
+          region: 'cn-north-4'
+          bucket: ${{ secrets.OBS_BUCKET }}
+          operation: 'upload'
+          local_path: ${{ inputs.test_file }}
+          obs_path: 'examples/public/'
+          public_read: true
+
+      - name: Upload single file (private)
+        id: upload_private
+        uses: ./
+        with:
+          access_key: ${{ secrets.OBS_ACCESS_KEY }}
+          secret_key: ${{ secrets.OBS_SECRET_KEY }}
+          region: 'cn-north-4'
+          bucket: ${{ secrets.OBS_BUCKET }}
+          operation: 'upload'
+          local_path: ${{ inputs.test_file }}
+          obs_path: 'examples/private/'
+          public_read: false
+
+      - name: Upload multiple files
+        id: upload_multiple
+        uses: ./
+        with:
+          access_key: ${{ secrets.OBS_ACCESS_KEY }}
+          secret_key: ${{ secrets.OBS_SECRET_KEY }}
+          region: 'cn-north-4'
+          bucket: ${{ secrets.OBS_BUCKET }}
+          operation: 'upload'
+          local_path: 'test-files/*.txt'
+          obs_path: 'examples/batch/'
+          public_read: true
+
+      - name: Display URL outputs
+        run: |
+          echo "## 📊 Upload Results"
+          echo ""
+          echo "### Single File (Public)"
+          echo "- Direct URL: ${{ steps.upload_public.outputs.first_upload_url }}"
+          echo "- All URLs: ${{ steps.upload_public.outputs.upload_urls }}"
+          echo "- Files processed: ${{ steps.upload_public.outputs.files_processed }}"
+          echo ""
+          echo "### Single File (Private - Signed URL)"
+          echo "- Signed URL: ${{ steps.upload_private.outputs.first_upload_url }}"
+          echo "- All URLs: ${{ steps.upload_private.outputs.upload_urls }}"
+          echo "- Files processed: ${{ steps.upload_private.outputs.files_processed }}"
+          echo ""
+          echo "### Multiple Files (Public)"
+          echo "- First URL: ${{ steps.upload_multiple.outputs.first_upload_url }}"
+          echo "- All URLs: ${{ steps.upload_multiple.outputs.upload_urls }}"
+          echo "- Files processed: ${{ steps.upload_multiple.outputs.files_processed }}"
+
+      - name: Test URL accessibility (public files only)
+        run: |
+          echo "Testing public URL accessibility..."
+
+          # Test the first public URL
+          if [ -n "${{ steps.upload_public.outputs.first_upload_url }}" ]; then
+            echo "Testing: ${{ steps.upload_public.outputs.first_upload_url }}"
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.upload_public.outputs.first_upload_url }}")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Public URL is accessible (HTTP $HTTP_STATUS)"
+            else
+              echo "❌ Public URL returned HTTP $HTTP_STATUS"
+            fi
+          else
+            echo "❌ No public URL found"
+          fi
+
+      - name: Parse and use URLs in subsequent steps
+        run: |
+          echo "## 🔗 Using URLs programmatically"
+
+          # Parse JSON array of URLs
+          URLS='${{ steps.upload_multiple.outputs.upload_urls }}'
+          echo "Raw URLs JSON: $URLS"
+
+          # Use jq to parse URLs (if available)
+          if command -v jq &> /dev/null; then
+            echo "URLs parsed with jq:"
+            echo "$URLS" | jq -r '.[]' | while read url; do
+              echo "  - $url"
+            done
+          else
+            echo "jq not available, showing raw JSON"
+          fi
+
+      - name: Create deployment manifest
+        run: |
+          cat > deployment-manifest.json << EOF
+          {
+            "deployment_id": "example-${{ github.run_number }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "files": {
+              "public_file": "${{ steps.upload_public.outputs.first_upload_url }}",
+              "private_file": "${{ steps.upload_private.outputs.first_upload_url }}",
+              "batch_files": ${{ steps.upload_multiple.outputs.upload_urls }}
+            },
+            "stats": {
+              "total_files": ${{ steps.upload_multiple.outputs.files_processed }},
+              "bytes_transferred": ${{ steps.upload_multiple.outputs.bytes_transferred }}
+            }
+          }
+          EOF
+
+          echo "## 📄 Deployment Manifest"
+          cat deployment-manifest.json | jq '.' || cat deployment-manifest.json
+
+      - name: Webhook notification example
+        run: |
+          echo "## 📡 Webhook Example"
+          echo "This step demonstrates how you might notify external services:"
+          echo ""
+          echo "curl -X POST 'https://your-webhook-endpoint.com/deploy' \\"
+          echo "  -H 'Content-Type: application/json' \\"
+          echo "  -d '{"
+          echo "    \"event\": \"deployment_complete\","
+          echo "    \"url\": \"${{ steps.upload_public.outputs.first_upload_url }}\","
+          echo "    \"files_count\": ${{ steps.upload_multiple.outputs.files_processed }},"
+          echo "    \"total_urls\": ${{ steps.upload_multiple.outputs.upload_urls }}"
+          echo "  }'"
+          echo ""
+          echo "Note: Replace with your actual webhook endpoint"

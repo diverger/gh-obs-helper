@@ -89,6 +89,7 @@ jobs:
             ### 🛠️ Usage
             ```yaml
             - name: Upload to OBS
+              id: upload
               uses: diverger/gh-obs-helper@${{ steps.tag.outputs.tag }}
               with:
                 access_key: ${{ secrets.OBS_ACCESS_KEY }}
@@ -98,6 +99,12 @@ jobs:
                 operation: 'upload'
                 local_path: 'dist/**/*'
                 obs_path: 'releases/${{ steps.tag.outputs.tag }}/'
+                public_read: true
+
+            - name: Use uploaded file URLs
+              run: |
+                echo "First file URL: ${{ steps.upload.outputs.first_upload_url }}"
+                echo "All URLs: ${{ steps.upload.outputs.upload_urls }}"
             ```
 
             ### 📋 Available Operations

@@ -29,6 +29,7 @@ Copy this template to `RELEASE_NOTES.md` before creating a release tag to provid
 ### 🛠️ Usage Example
 ```yaml
 - name: Upload to OBS
+  id: upload
   uses: diverger/gh-obs-helper@v[VERSION]
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
@@ -38,6 +39,12 @@ Copy this template to `RELEASE_NOTES.md` before creating a release tag to provid
     operation: 'upload'
     local_path: 'dist/**/*'
     obs_path: 'releases/v[VERSION]/'
+    public_read: true
+
+- name: Use uploaded file URLs
+  run: |
+    echo "First file URL: ${{ steps.upload.outputs.first_upload_url }}"
+    echo "All URLs: ${{ steps.upload.outputs.upload_urls }}"
 ```
 
 ### 🙏 Contributors

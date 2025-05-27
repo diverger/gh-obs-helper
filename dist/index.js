@@ -50886,6 +50886,10 @@ class OBSManager {
         const bytesTransferred = results
             .filter(r => r.status === 'success')
             .reduce((total, file) => total + file.size, 0);
+        // Collect URLs from successful uploads
+        const uploadUrls = results
+            .filter(r => r.status === 'success' && r.url)
+            .map(r => r.url);
         return {
             filesProcessed: results.length,
             bytesTransferred,
@@ -50893,7 +50897,8 @@ class OBSManager {
             successCount,
             errorCount: results.length - successCount,
             fileList: results,
-            errors
+            errors,
+            uploadUrls
         };
     }
     async uploadFile(operation) {
@@ -50923,6 +50928,15 @@ class OBSManager {
                         size: operation.size || fileData.length,
                         status: 'success'
                     };
+                    // Generate URL for the uploaded file
+                    if (this.inputs.publicRead) {
+                        // For public files, use direct URL
+                        processedFile.url = this.generateObjectUrl(operation.remotePath);
+                    }
+                    else {
+                        // For private files, generate signed URL (valid for 1 hour)
+                        processedFile.url = this.generateSignedUrl(operation.remotePath, 3600);
+                    }
                     // Add checksum if validation is enabled
                     if (this.inputs.checksumValidation) {
                         processedFile.checksum = (0, crypto_1.createHash)('md5').update(fileData).digest('hex');
@@ -51251,6 +51265,27 @@ class OBSManager {
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+    generateObjectUrl(objectKey) {
+        // Generate direct URL for the uploaded object
+        const endpoint = this.getServerEndpoint().replace('https://', '');
+        return `https://${this.inputs.bucketName}.${endpoint}/${objectKey}`;
+    }
+    generateSignedUrl(objectKey, expiresInSeconds = 3600) {
+        try {
+            // Generate a pre-signed URL for accessing the object
+            const signedUrl = this.client.createSignedUrlSync('GetObject', {
+                Bucket: this.inputs.bucketName,
+                Key: objectKey,
+                Expires: expiresInSeconds
+            });
+            return signedUrl;
+        }
+        catch (error) {
+            (0, utils_1.logWarning)(`Failed to generate signed URL for ${objectKey}: ${error}`);
+            // Fall back to direct URL
+            return this.generateObjectUrl(objectKey);
+        }
+    }
     close() {
         if (this.client) {
             this.client.close();
@@ -51353,6 +51388,15 @@ function setOutputs(result) {
     core.setOutput('success_count', result.successCount.toString());
     core.setOutput('error_count', result.errorCount.toString());
     core.setOutput('file_list', JSON.stringify(result.fileList));
+    // Set URL outputs for upload operations
+    if (result.uploadUrls && result.uploadUrls.length > 0) {
+        core.setOutput('upload_urls', JSON.stringify(result.uploadUrls));
+        core.setOutput('first_upload_url', result.uploadUrls[0]);
+    }
+    else {
+        core.setOutput('upload_urls', JSON.stringify([]));
+        core.setOutput('first_upload_url', '');
+    }
 }
 function logProgress(message, progress = true) {
     if (progress) {

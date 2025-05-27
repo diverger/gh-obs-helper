@@ -62,6 +62,27 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
     destination: 'app/'
 ```
 
+### Upload with URL Output
+```yaml
+- name: Upload files and get URLs
+  id: upload
+  uses: diverger/gh-obs-helper@v1
+  with:
+    access_key: ${{ secrets.OBS_ACCESS_KEY }}
+    secret_key: ${{ secrets.OBS_SECRET_KEY }}
+    region: 'cn-north-4'
+    bucket_name: 'my-bucket'
+    operation: 'upload'
+    source: 'dist/index.html'
+    destination: 'releases/v1.0.0/'
+    public_read: true
+
+- name: Use uploaded file URL
+  run: |
+    echo "File uploaded to: ${{ steps.upload.outputs.first_upload_url }}"
+    echo "All URLs: ${{ steps.upload.outputs.upload_urls }}"
+```
+
 ### Multiple Patterns with Exclusions
 ```yaml
 - name: Upload with patterns
@@ -161,7 +182,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
 | `access_key` | Huawei Cloud Access Key ID | ✅ | |
 | `secret_key` | Huawei Cloud Secret Access Key | ✅ | |
 | `region` | OBS region (e.g., cn-north-4) | ✅ | `cn-north-4` |
-| `bucket_name` | OBS bucket name | ✅ | |
+| `bucket` | OBS bucket name | ✅ | |
 | `operation` | Operation type: upload, download, sync, create-bucket, delete-bucket | ✅ | `upload` |
 | `source` | Source path(s) - supports wildcards, comma-separated | | |
 | `destination` | Destination path in OBS bucket | | |
@@ -188,6 +209,8 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
 | `success_count` | Number of successful operations |
 | `error_count` | Number of failed operations |
 | `file_list` | List of processed files (JSON array) |
+| `upload_urls` | List of URLs for uploaded files (JSON array) |
+| `first_upload_url` | URL of the first uploaded file (for single file uploads) |
 
 ## 🔧 Advanced Configuration
 
@@ -209,6 +232,31 @@ Adjust concurrency based on your needs:
 - **STANDARD**: Frequently accessed data
 - **WARM**: Infrequently accessed data
 - **COLD**: Long-term archival
+
+### URL Generation
+The action automatically generates URLs for uploaded files:
+
+- **Public files** (`public_read: true`): Direct URLs that can be accessed immediately
+- **Private files**: Pre-signed URLs valid for 1 hour that provide temporary access
+
+URLs are available in two outputs:
+- `upload_urls`: JSON array of all uploaded file URLs
+- `first_upload_url`: Direct access to the first uploaded file URL (useful for single file uploads)
+
+Example of using URLs in subsequent steps:
+```yaml
+- name: Upload and deploy
+  id: upload
+  uses: diverger/gh-obs-helper@v1
+  with:
+    # ... upload configuration
+    public_read: true
+
+- name: Update deployment
+  run: |
+    curl -X POST "${{ env.DEPLOY_WEBHOOK }}" \
+      -d "url=${{ steps.upload.outputs.first_upload_url }}"
+```
 
 ## 🌍 Supported Regions
 
