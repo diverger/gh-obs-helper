@@ -16,6 +16,7 @@ export interface ActionInputs {
   checksumValidation: boolean;
   storageClass: 'STANDARD' | 'WARM' | 'COLD';
   publicRead: boolean;
+  timeout: number;
 }
 
 export interface OperationResult {
@@ -50,4 +51,10 @@ export interface OBSConfig {
   access_key_id: string;
   secret_access_key: string;
   server: string;
+  region?: string;
+  signature?: string;
+  path_style?: boolean;
+  ssl_verify?: boolean;
+  max_retry_count?: number;
+  timeout?: number;
 }

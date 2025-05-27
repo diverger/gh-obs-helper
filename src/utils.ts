@@ -36,7 +36,8 @@ export function getInputs(): ActionInputs {
     progress: parseBool(core.getInput('progress'), true),
     checksumValidation: parseBool(core.getInput('checksum_validation'), false),
     storageClass: (core.getInput('storage_class') as any) || 'STANDARD',
-    publicRead: parseBool(core.getInput('public_read'), false)
+    publicRead: parseBool(core.getInput('public_read'), false),
+    timeout: parseInt(core.getInput('timeout'), 300)
   };
 }
 

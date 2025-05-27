@@ -21,7 +21,9 @@ export class OBSManager {
     const config: OBSConfig = {
       access_key_id: this.inputs.accessKey,
       secret_access_key: this.inputs.secretKey,
-      server: this.getServerEndpoint()
+      server: this.getServerEndpoint(),
+      timeout: this.inputs.timeout,
+      max_retry_count: this.inputs.retryCount
     };
 
     this.client = new ObsClient(config);

@@ -67,6 +67,10 @@ inputs:
     description: 'Make uploaded objects public readable (true/false)'
     required: false
     default: 'false'
+  timeout:
+    description: 'Request timeout in seconds'
+    required: false
+    default: '300'
 
 outputs:
   files_processed:
