@@ -112,10 +112,10 @@ jobs:
       - name: Test the built action
         uses: ./
         with:
-          access_key: "test-key"
-          secret_key: "test-secret"
+          access_key: ${{ secrets.OBS_ACCESS_KEY }}
+          secret_key: ${{ secrets.OBS_SECRET_KEY }
           region: "cn-north-4"
-          bucket: "test-bucket"
+          bucket: ${{ secrets.OBS_BUCKET }}
           operation: upload
           local_path: build-test.txt
           obs_path: test/
