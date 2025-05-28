@@ -1,15 +1,18 @@
 # Release Notes
 
-## 🚀 GH OBS Helper Release v1.1.6
+Copy this template to `RELEASE_NOTES.md` before creating a release tag to provide custom release notes.
 
-### 🔧 Changes
-- Update confidentials in workflows
+## 🚀 GH OBS Helper Release v1.1.5
+
+### 🐛 Bug Fixes
+- Update README.md
+
 
 ### 🛠️ Usage Example
 ```yaml
 - name: Upload to OBS
   id: upload
-  uses: diverger/gh-obs-helper@v1.1.6
+  uses: diverger/gh-obs-helper@v1.1.5
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -17,7 +20,7 @@
     bucket: 'my-bucket'
     operation: 'upload'
     local_path: 'dist/**/*'
-    obs_path: 'releases/v1.1.6/'
+    obs_path: 'releases/v1.1.5/'
     public_read: true
 
 - name: Use uploaded file URLs
@@ -27,4 +30,4 @@
 ```
 
 ---
-**Full Changelog**: https://github.com/diverger/gh-obs-helper/compare/v1.1.5...v1.1.6
+**Full Changelog**: https://github.com/diverger/gh-obs-helper/compare/v1.1.4...v1.1.5
