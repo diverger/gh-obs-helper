@@ -289,14 +289,7 @@ chmod +x generate-test-files.sh
 ./generate-test-files.sh
 ```
 
-The script creates:
-- **Text files** with various content types
-- **Binary files** (1MB test file)
-- **Special characters** and Unicode filenames
-- **Nested directory** structures
-- **Configuration files** (JSON, conf, etc.)
-- **Web assets** (CSS, JS)
-- **Log files** with sample data
+The script creates the files and structures used in the tests.
 
 ### Test Workflows
 
