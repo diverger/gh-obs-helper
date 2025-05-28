@@ -110,10 +110,11 @@ jobs:
           echo "Testing auto-built action"
 
       - name: Test the built action
+        id: test-action
         uses: ./
         with:
           access_key: ${{ secrets.OBS_ACCESS_KEY }}
-          secret_key: ${{ secrets.OBS_SECRET_KEY }
+          secret_key: ${{ secrets.OBS_SECRET_KEY }}
           region: "cn-north-4"
           bucket: ${{ secrets.OBS_BUCKET }}
           operation: upload
@@ -124,5 +125,11 @@ jobs:
 
       - name: Verify test completed
         run: |
-          echo "✅ Built action test completed"
-          echo "🎯 Action is ready for use"
+          if [ "${{ steps.test-action.outcome }}" = "success" ]; then
+            echo "✅ Built action test completed successfully"
+            echo "🎯 Action is ready for use"
+              else
+            echo "❌ Built action test failed"
+            echo "🚫 Action needs debugging"
+            exit 1
+          fi
