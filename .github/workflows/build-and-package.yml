@@ -72,8 +72,8 @@ jobs:
       - name: Commit and push built files
         if: steps.verify-changed-files.outputs.changed == 'true' && github.event_name == 'push'
         run: |
-          git config --local user.email "diverger@live.cn"
-          git config --local user.name "diverger"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
 
           git add dist/
           git commit -m "🤖 Auto-build: Update compiled action [skip ci]"

@@ -125,8 +125,8 @@ jobs:
       - name: Update major version tag
         run: |
           MAJOR_VERSION=$(echo ${{ steps.tag.outputs.tag }} | sed 's/v\([0-9]*\).*/v\1/')
-          git config --local user.email "diverger@live.cn"
-          git config --local user.name "diverger"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
 
           # Create or update major version tag (e.g., v1)
           git tag -fa ${MAJOR_VERSION} -m "Update ${MAJOR_VERSION} to ${{ steps.tag.outputs.tag }}"
