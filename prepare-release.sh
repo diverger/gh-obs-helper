@@ -91,8 +91,9 @@ prepare_new_release() {
     if [[ -f "RELEASE_NOTES_TEMPLATE.md" ]]; then
         cp RELEASE_NOTES_TEMPLATE.md RELEASE_NOTES.md
 
-        # Replace version placeholders
-        sed -i "s/\[VERSION\]/$new_version/g" RELEASE_NOTES.md
+        # Replace version placeholders (strip 'v' prefix to avoid double 'v')
+        version_number=${new_version#v}
+        sed -i "s/\[VERSION\]/v$version_number/g" RELEASE_NOTES.md
 
         print_success "Created new release notes template for $new_version"
         print_info "Please edit RELEASE_NOTES.md to add your release information"
