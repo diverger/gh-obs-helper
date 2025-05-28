@@ -1,7 +1,5 @@
 # Release Notes
 
-Copy this template to `RELEASE_NOTES.md` before creating a release tag to provide custom release notes.
-
 ## 🚀 GH OBS Helper Release [VERSION]
 
 ### 🎯 What's New
