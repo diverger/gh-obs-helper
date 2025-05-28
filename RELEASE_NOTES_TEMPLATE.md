@@ -2,7 +2,7 @@
 
 Copy this template to `RELEASE_NOTES.md` before creating a release tag to provide custom release notes.
 
-## 🚀 GH OBS Helper Release v[VERSION]
+## 🚀 GH OBS Helper Release [VERSION]
 
 ### 🎯 What's New
 - List new features
@@ -30,7 +30,7 @@ Copy this template to `RELEASE_NOTES.md` before creating a release tag to provid
 ```yaml
 - name: Upload to OBS
   id: upload
-  uses: diverger/gh-obs-helper@v[VERSION]
+  uses: diverger/gh-obs-helper@[VERSION]
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -38,7 +38,7 @@ Copy this template to `RELEASE_NOTES.md` before creating a release tag to provid
     bucket: 'my-bucket'
     operation: 'upload'
     local_path: 'dist/**/*'
-    obs_path: 'releases/v[VERSION]/'
+    obs_path: 'releases/[VERSION]/'
     public_read: true
 
 - name: Use uploaded file URLs
@@ -52,4 +52,4 @@ Copy this template to `RELEASE_NOTES.md` before creating a release tag to provid
 - Mention community feedback
 
 ---
-**Full Changelog**: https://github.com/diverger/gh-obs-helper/compare/v[PREVIOUS]...v[VERSION]
+**Full Changelog**: https://github.com/diverger/gh-obs-helper/compare/[PREVIOUS]...[VERSION]
