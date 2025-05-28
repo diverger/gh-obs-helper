@@ -50843,7 +50843,7 @@ if (require.main === require.cache[eval('__filename')]) {
  *        Supports upload, download, sync, and bucket management with streaming
  *        uploads for large files to avoid memory constraints.
  *
- * Last Modified: Wednesday, 2025/05/28 7:40:55
+ * Last Modified: Wednesday, 2025/05/28 11:27:53
  *
  * Copyright (c) 2025
  * Licensed under the MIT License
@@ -50851,6 +50851,39 @@ if (require.main === require.cache[eval('__filename')]) {
  * HISTORY:
  * 2025-05-28	diverger	Implemented streaming uploads to fix large file buffer overflow
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -50858,7 +50891,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OBSManager = void 0;
 const esdk_obs_nodejs_1 = __importDefault(__nccwpck_require__(1728));
 const p_limit_1 = __importDefault(__nccwpck_require__(370));
-const path_1 = __importDefault(__nccwpck_require__(6928));
+const path = __importStar(__nccwpck_require__(6928));
 const file_manager_1 = __nccwpck_require__(1747);
 const utils_1 = __nccwpck_require__(1798);
 const crypto_1 = __nccwpck_require__(6982);
@@ -50877,6 +50910,14 @@ class OBSManager {
             timeout: this.inputs.timeout,
             max_retry_count: this.inputs.retryCount
         };
+        // Debug logging for configuration (without exposing sensitive data)
+        (0, utils_1.logProgress)(`🔧 OBS Configuration:`, this.inputs.progress);
+        (0, utils_1.logProgress)(`   Server: ${config.server}`, this.inputs.progress);
+        (0, utils_1.logProgress)(`   Region: ${this.inputs.region}`, this.inputs.progress);
+        (0, utils_1.logProgress)(`   Bucket: ${this.inputs.bucketName}`, this.inputs.progress);
+        (0, utils_1.logProgress)(`   Access Key: ${config.access_key_id.substring(0, 8)}...`, this.inputs.progress);
+        (0, utils_1.logProgress)(`   Timeout: ${config.timeout}s`, this.inputs.progress);
+        (0, utils_1.logProgress)(`   Retry Count: ${config.max_retry_count}`, this.inputs.progress);
         this.client = new esdk_obs_nodejs_1.default(config);
     }
     getServerEndpoint() {
@@ -50894,8 +50935,12 @@ class OBSManager {
     }
     async execute() {
         const startTime = Date.now();
-        (0, utils_1.logProgress)(`Starting ${this.inputs.operation} operation...`, this.inputs.progress);
+        (0, utils_1.logProgress)(`🚀 Starting ${this.inputs.operation} operation...`, this.inputs.progress);
         try {
+            // Validate bucket access before performing operations
+            if (['upload', 'download', 'sync'].includes(this.inputs.operation)) {
+                await this.validateBucketAccess();
+            }
             switch (this.inputs.operation) {
                 case 'upload':
                     return await this.performUpload();
@@ -50912,12 +50957,12 @@ class OBSManager {
             }
         }
         catch (error) {
-            (0, utils_1.logError)(`Operation failed: ${error}`);
+            (0, utils_1.logError)(`❌ Operation failed: ${error}`);
             throw error;
         }
         finally {
             const operationTime = (Date.now() - startTime) / 1000;
-            (0, utils_1.logProgress)(`Operation completed in ${operationTime.toFixed(2)} seconds`, this.inputs.progress);
+            (0, utils_1.logProgress)(`🔄 Operation completed in ${operationTime.toFixed(2)} seconds`, this.inputs.progress);
         }
     }
     async performUpload() {
@@ -50992,7 +51037,7 @@ class OBSManager {
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             try {
                 if (attempt > 0) {
-                    (0, utils_1.logProgress)(`Retry ${attempt}/${maxRetries}: ${operation.localPath}`, this.inputs.progress);
+                    (0, utils_1.logProgress)(`🔄 Retry ${attempt}/${maxRetries}: ${operation.localPath}`, this.inputs.progress);
                     await this.delay(1000 * attempt); // Exponential backoff
                 }
                 // Use streaming upload for better memory efficiency with large files
@@ -51035,8 +51080,18 @@ class OBSManager {
             }
             catch (error) {
                 lastError = error;
+                // Enhanced error logging for 403 errors
+                if (error?.toString && error.toString().includes('403')) {
+                    (0, utils_1.logError)(`❌ 403 Forbidden Error - This indicates an authentication or authorization issue:`);
+                    (0, utils_1.logError)(`   • Check your access_key and secret_key are correct`);
+                    (0, utils_1.logError)(`   • Verify the bucket exists: ${this.inputs.bucketName}`);
+                    (0, utils_1.logError)(`   • Confirm the bucket is in region: ${this.inputs.region}`);
+                    (0, utils_1.logError)(`   • Ensure your access key has PUT permissions on the bucket`);
+                    (0, utils_1.logError)(`   • Server endpoint: ${this.getServerEndpoint()}`);
+                    (0, utils_1.logError)(`   • Remote path: ${operation.remotePath}`);
+                }
                 if (attempt === maxRetries) {
-                    (0, utils_1.logError)(`Failed after ${maxRetries + 1} attempts: ${operation.localPath}`);
+                    (0, utils_1.logError)(`❌ Failed after ${maxRetries + 1} attempts: ${operation.localPath}`);
                 }
             }
         }
@@ -51197,20 +51252,20 @@ class OBSManager {
         if (this.inputs.localPath) {
             if (this.inputs.preserveStructure) {
                 // Preserve the full OBS path structure
-                localPath = path_1.default.join(this.inputs.localPath, remotePath);
+                localPath = path.join(this.inputs.localPath, remotePath);
             }
             else {
                 // Just use the filename
-                const filename = path_1.default.basename(remotePath);
-                localPath = path_1.default.join(this.inputs.localPath, filename);
+                const filename = path.basename(remotePath);
+                localPath = path.join(this.inputs.localPath, filename);
             }
         }
         else {
             // Default to current directory with preserved structure
-            localPath = this.inputs.preserveStructure ? remotePath : path_1.default.basename(remotePath);
+            localPath = this.inputs.preserveStructure ? remotePath : path.basename(remotePath);
         }
         return {
-            localPath: path_1.default.normalize(localPath),
+            localPath: path.normalize(localPath),
             remotePath,
             size: parseInt(obsObject.Size) || 0,
             operation: 'download'
@@ -51370,6 +51425,46 @@ class OBSManager {
             (0, utils_1.logWarning)(`Failed to generate signed URL for ${objectKey}: ${error}`);
             // Fall back to direct URL
             return this.generateObjectUrl(objectKey);
+        }
+    }
+    async validateBucketAccess() {
+        try {
+            (0, utils_1.logProgress)(`🔍 Validating bucket access: ${this.inputs.bucketName}`, this.inputs.progress);
+            // Try to list objects with a small limit to test access
+            const result = await this.client.listObjects({
+                Bucket: this.inputs.bucketName,
+                MaxKeys: 1
+            });
+            if (result.CommonMsg.Status === 200) {
+                (0, utils_1.logProgress)(`✅ Bucket access validated successfully`, this.inputs.progress);
+            }
+            else if (result.CommonMsg.Status === 403) {
+                throw new Error(`Bucket access denied (403). Check your credentials and bucket permissions.`);
+            }
+            else if (result.CommonMsg.Status === 404) {
+                throw new Error(`Bucket not found (404). Check if bucket '${this.inputs.bucketName}' exists in region '${this.inputs.region}'.`);
+            }
+            else {
+                throw new Error(`Bucket validation failed with status: ${result.CommonMsg.Status} - ${result.CommonMsg.Message}`);
+            }
+        }
+        catch (error) {
+            if (error?.message && error.message.includes('403')) {
+                (0, utils_1.logError)(`❌ 403 Forbidden - Troubleshooting checklist:`);
+                (0, utils_1.logError)(`   1. Verify your access_key and secret_key are correct`);
+                (0, utils_1.logError)(`   2. Check if bucket '${this.inputs.bucketName}' exists`);
+                (0, utils_1.logError)(`   3. Confirm bucket is in region '${this.inputs.region}'`);
+                (0, utils_1.logError)(`   4. Ensure your access key has required permissions (GetObject, PutObject, ListBucket)`);
+                (0, utils_1.logError)(`   5. Check if there are any IP restrictions on your OBS bucket`);
+                (0, utils_1.logError)(`   6. Verify the endpoint URL: ${this.getServerEndpoint()}`);
+            }
+            else if (error?.message && error.message.includes('404')) {
+                (0, utils_1.logError)(`❌ 404 Not Found - Bucket troubleshooting:`);
+                (0, utils_1.logError)(`   1. Check if bucket '${this.inputs.bucketName}' exists`);
+                (0, utils_1.logError)(`   2. Verify the bucket is in region '${this.inputs.region}'`);
+                (0, utils_1.logError)(`   3. Check bucket name for typos`);
+            }
+            throw error;
         }
     }
     close() {

@@ -23,5 +23,6 @@ export declare class OBSManager {
     private delay;
     private generateObjectUrl;
     private generateSignedUrl;
+    private validateBucketAccess;
     close(): void;
 }
