@@ -91,8 +91,18 @@ prepare_new_release() {
     if [[ -f "RELEASE_NOTES_TEMPLATE.md" ]]; then
         cp RELEASE_NOTES_TEMPLATE.md RELEASE_NOTES.md
 
-        # Replace version placeholders
-        sed -i "s/\[VERSION\]/$new_version/g" RELEASE_NOTES.md
+        # Replace version placeholders (strip 'v' prefix to avoid double 'v')
+        version_number=${new_version#v}
+        sed -i "s/\[VERSION\]/v$version_number/g" RELEASE_NOTES.md
+
+        # Find and replace previous version placeholder
+        previous_version=$(git tag --sort=-version:refname | grep -v "^$new_version$" | head -1)
+        if [[ -n "$previous_version" ]]; then
+            sed -i "s/\[PREVIOUS\]/$previous_version/g" RELEASE_NOTES.md
+            print_info "Set previous version to: $previous_version"
+        else
+            print_warning "No previous version found, keeping [PREVIOUS] placeholder"
+        fi
 
         print_success "Created new release notes template for $new_version"
         print_info "Please edit RELEASE_NOTES.md to add your release information"

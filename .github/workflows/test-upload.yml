@@ -14,6 +14,7 @@ on:
           - directory
           - wildcard-patterns
           - large-files
+          - large-multipart-test
       bucket:
         description: 'OBS bucket name for testing'
         required: false
@@ -44,6 +45,31 @@ jobs:
           # Make script executable and run it
           chmod +x generate-test-files.sh
           ./generate-test-files.sh
+
+      - name: Create large test file (>1GB) for multipart upload testing
+        if: inputs.test_scenario == 'large-files' || inputs.test_scenario == 'large-multipart-test'
+        run: |
+          echo "🔥 Creating large test file (>1GB) for multipart upload testing..."
+
+          # Create a 1.2GB test file using dd with /dev/zero for speed
+          # This will trigger the multipart upload functionality
+          dd if=/dev/zero of=test-files/large-multipart-test.bin bs=1M count=1200 status=progress
+
+          # Verify file size
+          FILE_SIZE=$(stat -c%s test-files/large-multipart-test.bin)
+          FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
+          echo "✅ Created large test file: ${FILE_SIZE_MB}MB (${FILE_SIZE} bytes)"
+
+          # This should be larger than 1GB threshold (1073741824 bytes)
+          if [ $FILE_SIZE -gt 1073741824 ]; then
+            echo "🎯 File size exceeds 1GB threshold - will trigger multipart upload"
+          else
+            echo "⚠️ File size is below 1GB threshold - multipart upload may not be triggered"
+          fi
+
+          # List all test files for verification
+          echo "📂 All test files created:"
+          ls -lh test-files/
 
       - name: Test Single File Upload
         if: inputs.test_scenario == 'single-file'
@@ -119,13 +145,61 @@ jobs:
           storage_class: STANDARD
           retry_count: 5
 
+      - name: Test Large Multipart Upload (>1GB)
+        if: inputs.test_scenario == 'large-files' || inputs.test_scenario == 'large-multipart-test'
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket: ${{ env.OBS_BUCKET }}
+          operation: upload
+          local_path: test-files/large-multipart-test.bin
+          obs_path: test-uploads/multipart/
+          progress: true
+          checksum_validation: false  # Disable for large files to save time
+          storage_class: STANDARD
+          retry_count: 3
+          timeout: 1800000  # 30 minutes timeout for large uploads
+
       - name: Verify Upload Results
         run: |
+          echo "## 🎯 Upload Test Results Summary"
           echo "Upload test completed for scenario: ${{ inputs.test_scenario }}"
+          echo ""
+
+          if [ "${{ inputs.test_scenario }}" = "large-files" ] || [ "${{ inputs.test_scenario }}" = "large-multipart-test" ]; then
+            echo "### 📊 Large File Upload Test"
+            echo "- ✅ 1.2GB test file created and uploaded"
+            echo "- 🔧 Multipart upload should have been triggered automatically"
+            echo "- 📂 Check logs above for multipart upload messages:"
+            echo "  - Look for: '📦 Large file detected (1200MB), using multipart upload'"
+            echo "  - Look for: '📦 Multipart upload initialized'"
+            echo "  - Look for: '📦 Part X uploaded'"
+            echo "  - Look for: '✅ Large file uploaded successfully'"
+            echo ""
+            echo "### 🔍 What to Verify in OBS:"
+            echo "- File should be uploaded to: test-uploads/multipart/large-multipart-test.bin"
+            echo "- File size should be exactly 1,258,291,200 bytes (1.2GB)"
+            echo "- No 403 Forbidden errors should occur"
+          fi
+
           echo "Check the action outputs and OBS bucket for uploaded files"
 
       - name: Cleanup Test Files
         if: always()
         run: |
+          echo "🧹 Cleaning up test files..."
+
+          # Show space usage before cleanup
+          echo "Disk usage before cleanup:"
+          df -h
+
+          # Remove test files
           rm -rf test-files/
-          echo "Test files cleaned up"
+
+          echo "✅ Test files cleaned up"
+
+          # Show space usage after cleanup
+          echo "Disk usage after cleanup:"
+          df -h
