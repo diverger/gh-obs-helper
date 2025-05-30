@@ -163,7 +163,7 @@ jobs:
           local_path: test-files/large-multipart-test.bin
           obs_path: test-uploads/multipart/
           progress: true
-          checksum_validation: false  # Disable for large files to save time
+          checksum_validation: true
           storage_class: STANDARD
           retry_count: 3
           timeout: 1800000  # 30 minutes timeout for large uploads
