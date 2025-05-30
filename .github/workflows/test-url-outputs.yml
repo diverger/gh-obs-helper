@@ -1,0 +1,196 @@
+name: Test URL Outputs
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of URL test to run'
+        required: true
+        default: 'public-urls'
+        type: choice
+        options:
+          - public-urls
+          - private-urls
+          - mixed-access
+      bucket:
+        description: 'OBS bucket name for testing'
+        required: false
+        type: string
+      region:
+        description: 'OBS region'
+        required: false
+        default: 'cn-north-4'
+        type: string
+
+env:
+  OBS_BUCKET: ${{ inputs.bucket || secrets.OBS_BUCKET }}
+  OBS_ACCESS_KEY: ${{ secrets.OBS_ACCESS_KEY }}
+  OBS_SECRET_KEY: ${{ secrets.OBS_SECRET_KEY }}
+  OBS_REGION: ${{ inputs.region || 'cn-north-4' }}
+
+jobs:
+  test-url-outputs:
+    runs-on: ubuntu-latest
+    name: Test URL Outputs - ${{ inputs.test_type }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        run: |
+          # Make script executable and run it
+          chmod +x generate-test-files.sh
+          ./generate-test-files.sh
+
+      - name: Test Public File Upload with URLs
+        id: upload_public
+        if: inputs.test_type == 'public-urls' || inputs.test_type == 'mixed-access'
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket: ${{ env.OBS_BUCKET }}
+          operation: upload
+          local_path: test-files/simple.txt
+          obs_path: test-urls/public/
+          public_read: true
+          progress: true
+
+      - name: Test Private File Upload with URLs
+        id: upload_private
+        if: inputs.test_type == 'private-urls' || inputs.test_type == 'mixed-access'
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket: ${{ env.OBS_BUCKET }}
+          operation: upload
+          local_path: test-files/data.json
+          obs_path: test-urls/private/
+          public_read: false
+          progress: true
+
+      - name: Test Multiple Files Upload with URLs
+        id: upload_multiple
+        uses: ./
+        with:
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
+          region: ${{ env.OBS_REGION }}
+          bucket: ${{ env.OBS_BUCKET }}
+          operation: upload
+          local_path: test-files/documents/doc1.txt,test-files/documents/doc2.txt,test-files/images/image1.jpg
+          obs_path: test-urls/batch/
+          public_read: ${{ inputs.test_type == 'public-urls' }}
+          progress: true
+
+      - name: Display All URL Outputs
+        run: |
+          echo "# 🔗 URL Outputs Test Results"
+          echo ""
+          echo "**Test Type:** ${{ inputs.test_type }}"
+          echo "**Region:** ${{ env.OBS_REGION }}"
+          echo "**Bucket:** ${{ env.OBS_BUCKET }}"
+          echo ""
+
+          if [ "${{ inputs.test_type }}" = "public-urls" ] || [ "${{ inputs.test_type }}" = "mixed-access" ]; then
+            echo "## 🌐 Public File Upload Results"
+            echo "- **Files processed:** ${{ steps.upload_public.outputs.files_processed || '0' }}"
+            echo "- **Success count:** ${{ steps.upload_public.outputs.success_count || '0' }}"
+            echo "- **Error count:** ${{ steps.upload_public.outputs.error_count || '0' }}"
+            echo "- **First upload URL:** ${{ steps.upload_public.outputs.first_upload_url || 'Not available' }}"
+            echo "- **All upload URLs:** ${{ steps.upload_public.outputs.upload_urls || '[]' }}"
+            echo ""
+
+            # Test direct access to public URL
+            if [ -n "${{ steps.upload_public.outputs.first_upload_url }}" ]; then
+              echo "### 🧪 Testing Direct Access to Public URL"
+              echo "Attempting to access: ${{ steps.upload_public.outputs.first_upload_url }}"
+              if curl -I -s "${{ steps.upload_public.outputs.first_upload_url }}" | head -1 | grep -q "200 OK"; then
+                echo "✅ **SUCCESS:** Public URL is accessible"
+              else
+                echo "❌ **FAILED:** Public URL is not accessible"
+              fi
+              echo ""
+            fi
+          fi
+
+          if [ "${{ inputs.test_type }}" = "private-urls" ] || [ "${{ inputs.test_type }}" = "mixed-access" ]; then
+            echo "## 🔒 Private File Upload Results"
+            echo "- **Files processed:** ${{ steps.upload_private.outputs.files_processed || '0' }}"
+            echo "- **Success count:** ${{ steps.upload_private.outputs.success_count || '0' }}"
+            echo "- **Error count:** ${{ steps.upload_private.outputs.error_count || '0' }}"
+            echo "- **First upload URL:** ${{ steps.upload_private.outputs.first_upload_url || 'Not available' }}"
+            echo "- **All upload URLs:** ${{ steps.upload_private.outputs.upload_urls || '[]' }}"
+            echo ""
+
+            # Test access to private signed URL
+            if [ -n "${{ steps.upload_private.outputs.first_upload_url }}" ]; then
+              echo "### 🧪 Testing Access to Private Signed URL"
+              echo "Attempting to access: ${{ steps.upload_private.outputs.first_upload_url }}"
+              if curl -I -s "${{ steps.upload_private.outputs.first_upload_url }}" | head -1 | grep -q "200 OK"; then
+                echo "✅ **SUCCESS:** Private signed URL is accessible"
+              else
+                echo "❌ **FAILED:** Private signed URL is not accessible"
+              fi
+              echo ""
+            fi
+          fi
+
+          echo "## 📁 Multiple Files Upload Results"
+          echo "- **Files processed:** ${{ steps.upload_multiple.outputs.files_processed || '0' }}"
+          echo "- **Success count:** ${{ steps.upload_multiple.outputs.success_count || '0' }}"
+          echo "- **Error count:** ${{ steps.upload_multiple.outputs.error_count || '0' }}"
+          echo "- **First upload URL:** ${{ steps.upload_multiple.outputs.first_upload_url || 'Not available' }}"
+          echo "- **All upload URLs:** ${{ steps.upload_multiple.outputs.upload_urls || '[]' }}"
+          echo ""
+
+          # Parse and display individual URLs from JSON array
+          if [ -n "${{ steps.upload_multiple.outputs.upload_urls }}" ] && [ "${{ steps.upload_multiple.outputs.upload_urls }}" != "[]" ]; then
+            echo "### 📋 Individual URLs from Multiple Upload"
+            echo '${{ steps.upload_multiple.outputs.upload_urls }}' | jq -r '.[] | "- " + .'
+            echo ""
+          fi
+
+      - name: URL Usage Examples
+        run: |
+          echo "## 📖 How to Use These URLs in Your Workflows"
+          echo ""
+          echo "### Basic Usage"
+          echo '```yaml'
+          echo '- name: Upload files'
+          echo '  id: upload'
+          echo '  uses: your-action@v1'
+          echo '  with:'
+          echo '    # ... your config'
+          echo '    public_read: true'
+          echo ''
+          echo '- name: Use URLs'
+          echo '  run: |'
+          echo '    echo "First file: ${{ steps.upload.outputs.first_upload_url }}"'
+          echo '    echo "All files: ${{ steps.upload.outputs.upload_urls }}"'
+          echo '```'
+          echo ""
+          echo "### Advanced Usage - Parse JSON URLs"
+          echo '```yaml'
+          echo '- name: Process each uploaded file'
+          echo '  run: |'
+          echo '    echo '\''${{ steps.upload.outputs.upload_urls }}'\'' | jq -r '\''.[] | "Processing: " + .'\'''
+          echo '```'
+          echo ""
+          echo "### Deploy with URLs"
+          echo '```yaml'
+          echo '- name: Update deployment manifest'
+          echo '  run: |'
+          echo '    sed -i "s|{{ASSET_URL}}|${{ steps.upload.outputs.first_upload_url }}|g" deploy.yaml'
+          echo '```'
+
+      - name: Cleanup Test Files
+        if: always()
+        run: |
+          echo "🧹 Cleaning up test files..."
+          rm -rf test-files/
+          echo "✅ Test files cleaned up"
