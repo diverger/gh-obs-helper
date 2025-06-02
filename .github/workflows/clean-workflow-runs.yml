@@ -26,6 +26,7 @@ env:
 
 jobs:
   clean-logs:
+    if : ${{ github.repository_owner == 'diverger' }}
     name: Clean Up Workflow Logs
     runs-on: ubuntu-latest
     permissions:
