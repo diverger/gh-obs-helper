@@ -115,7 +115,7 @@ jobs:
         with:
           access_key: ${{ secrets.OBS_ACCESS_KEY }}
           secret_key: ${{ secrets.OBS_SECRET_KEY }}
-          region: "cn-north-4"
+          region: ${{ secrets.OBS_REGION }}
           bucket: ${{ secrets.OBS_BUCKET }}
           operation: upload
           local_path: build-test.txt
