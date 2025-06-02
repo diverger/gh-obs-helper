@@ -1,0 +1,55 @@
+name: 🗑️ Clean Workflow Runs
+
+on:
+  schedule:
+    - cron: "0 16 * * 1" # Runs "At 00:00 UTC+8, Monday" (00:00 Beijing Time). https://crontab.guru/
+
+  workflow_dispatch:
+    inputs:
+      runs_older_than:
+        description: "The amount of days old to delete"
+        default: "21"
+        required: false
+      runs_to_keep:
+        description: "The amount of latest workflow runs to keep"
+        default: "5"
+        required: false
+      dry_run:
+        description: "Only show what would be deleted (dry run)"
+        type: boolean
+        default: true
+        required: false
+
+env:
+  SCHEDULED_RUNS_OLDER_THAN: "21"
+  SCHEDULED_RUNS_TO_KEEP: "5"
+
+jobs:
+  clean-logs:
+    name: Clean Up Workflow Logs
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      # - uses: igorjs/gh-actions-clean-workflow@v6
+      - name: Clean workflow runs
+        id: clean
+        uses: diverger/gh-clean-workflow@main
+        with:
+          runs_older_than: ${{ github.event.inputs.runs_older_than || env.SCHEDULED_RUNS_OLDER_THAN }}
+          runs_to_keep: ${{ github.event.inputs.runs_to_keep || env.SCHEDULED_RUNS_TO_KEEP }}
+          dry_run: ${{ github.event.inputs.dry_run || 'false' }}
+
+      - name: Display cleanup summary
+        run: |
+          echo "## 🗑️ Workflow Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.clean.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total runs found:** ${{ steps.clean.outputs.total_runs }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runs deleted:** ${{ steps.clean.outputs.deleted_runs }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runs kept:** ${{ steps.clean.outputs.kept_runs }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Failed deletions:** ${{ steps.clean.outputs.failed_deletions }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cutoff date:** ${{ steps.clean.outputs.cutoff_date }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry run:** ${{ steps.clean.outputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
