@@ -72,6 +72,7 @@ jobs:
           ls -lh test-files/
 
       - name: Test Single File Upload
+        id: upload_single
         if: inputs.test_scenario == 'single-file'
         uses: ./
         with:
@@ -86,6 +87,7 @@ jobs:
           dry_run: false
 
       - name: Test Multiple Files Upload
+        id: upload_multiple
         if: inputs.test_scenario == 'multiple-files'
         uses: ./
         with:
@@ -100,6 +102,7 @@ jobs:
           concurrency: 3
 
       - name: Test Directory Upload
+        id: upload_directory
         if: inputs.test_scenario == 'directory'
         uses: ./
         with:
@@ -115,6 +118,7 @@ jobs:
           concurrency: 5
 
       - name: Test Wildcard Patterns Upload
+        id: upload_wildcard
         if: inputs.test_scenario == 'wildcard-patterns'
         uses: ./
         with:
@@ -130,6 +134,7 @@ jobs:
           progress: true
 
       - name: Test Large Files Upload
+        id: upload_large
         if: inputs.test_scenario == 'large-files'
         uses: ./
         with:
@@ -146,6 +151,7 @@ jobs:
           retry_count: 5
 
       - name: Test Large Multipart Upload (>1GB)
+        id: upload_multipart
         if: inputs.test_scenario == 'large-files' || inputs.test_scenario == 'large-multipart-test'
         uses: ./
         with:
@@ -157,10 +163,106 @@ jobs:
           local_path: test-files/large-multipart-test.bin
           obs_path: test-uploads/multipart/
           progress: true
-          checksum_validation: false  # Disable for large files to save time
+          checksum_validation: true
           storage_class: STANDARD
           retry_count: 3
           timeout: 1800000  # 30 minutes timeout for large uploads
+
+      - name: Display Upload URLs and Outputs
+        if: always()
+        run: |
+          echo "## 🔗 Upload URLs and Action Outputs"
+          echo ""
+
+          # Single File Upload Results
+          if [ "${{ inputs.test_scenario }}" = "single-file" ]; then
+            echo "### 📄 Single File Upload Results"
+            echo "**Files processed:** ${{ steps.upload_single.outputs.files_processed || '0' }}"
+            echo "**Bytes transferred:** ${{ steps.upload_single.outputs.bytes_transferred || '0' }}"
+            echo "**Success count:** ${{ steps.upload_single.outputs.success_count || '0' }}"
+            echo "**Error count:** ${{ steps.upload_single.outputs.error_count || '0' }}"
+            echo "**First upload URL:** ${{ steps.upload_single.outputs.first_upload_url || 'Not available' }}"
+            echo "**All upload URLs:** ${{ steps.upload_single.outputs.upload_urls || '[]' }}"
+            echo ""
+          fi
+
+          # Multiple Files Upload Results
+          if [ "${{ inputs.test_scenario }}" = "multiple-files" ]; then
+            echo "### 📁 Multiple Files Upload Results"
+            echo "**Files processed:** ${{ steps.upload_multiple.outputs.files_processed || '0' }}"
+            echo "**Bytes transferred:** ${{ steps.upload_multiple.outputs.bytes_transferred || '0' }}"
+            echo "**Success count:** ${{ steps.upload_multiple.outputs.success_count || '0' }}"
+            echo "**Error count:** ${{ steps.upload_multiple.outputs.error_count || '0' }}"
+            echo "**First upload URL:** ${{ steps.upload_multiple.outputs.first_upload_url || 'Not available' }}"
+            echo "**All upload URLs:** ${{ steps.upload_multiple.outputs.upload_urls || '[]' }}"
+            echo ""
+          fi
+
+          # Directory Upload Results
+          if [ "${{ inputs.test_scenario }}" = "directory" ]; then
+            echo "### 📂 Directory Upload Results"
+            echo "**Files processed:** ${{ steps.upload_directory.outputs.files_processed || '0' }}"
+            echo "**Bytes transferred:** ${{ steps.upload_directory.outputs.bytes_transferred || '0' }}"
+            echo "**Success count:** ${{ steps.upload_directory.outputs.success_count || '0' }}"
+            echo "**Error count:** ${{ steps.upload_directory.outputs.error_count || '0' }}"
+            echo "**First upload URL:** ${{ steps.upload_directory.outputs.first_upload_url || 'Not available' }}"
+            echo "**All upload URLs:** ${{ steps.upload_directory.outputs.upload_urls || '[]' }}"
+            echo ""
+          fi
+
+          # Wildcard Patterns Upload Results
+          if [ "${{ inputs.test_scenario }}" = "wildcard-patterns" ]; then
+            echo "### 🎯 Wildcard Patterns Upload Results"
+            echo "**Files processed:** ${{ steps.upload_wildcard.outputs.files_processed || '0' }}"
+            echo "**Bytes transferred:** ${{ steps.upload_wildcard.outputs.bytes_transferred || '0' }}"
+            echo "**Success count:** ${{ steps.upload_wildcard.outputs.success_count || '0' }}"
+            echo "**Error count:** ${{ steps.upload_wildcard.outputs.error_count || '0' }}"
+            echo "**First upload URL:** ${{ steps.upload_wildcard.outputs.first_upload_url || 'Not available' }}"
+            echo "**All upload URLs:** ${{ steps.upload_wildcard.outputs.upload_urls || '[]' }}"
+            echo ""
+          fi
+
+          # Large Files Upload Results
+          if [ "${{ inputs.test_scenario }}" = "large-files" ]; then
+            echo "### 🚀 Large Files Upload Results"
+            echo "**Files processed:** ${{ steps.upload_large.outputs.files_processed || '0' }}"
+            echo "**Bytes transferred:** ${{ steps.upload_large.outputs.bytes_transferred || '0' }}"
+            echo "**Success count:** ${{ steps.upload_large.outputs.success_count || '0' }}"
+            echo "**Error count:** ${{ steps.upload_large.outputs.error_count || '0' }}"
+            echo "**First upload URL:** ${{ steps.upload_large.outputs.first_upload_url || 'Not available' }}"
+            echo "**All upload URLs:** ${{ steps.upload_large.outputs.upload_urls || '[]' }}"
+            echo ""
+
+            echo "### 📦 Multipart Upload Results"
+            echo "**Files processed:** ${{ steps.upload_multipart.outputs.files_processed || '0' }}"
+            echo "**Bytes transferred:** ${{ steps.upload_multipart.outputs.bytes_transferred || '0' }}"
+            echo "**Success count:** ${{ steps.upload_multipart.outputs.success_count || '0' }}"
+            echo "**Error count:** ${{ steps.upload_multipart.outputs.error_count || '0' }}"
+            echo "**First upload URL:** ${{ steps.upload_multipart.outputs.first_upload_url || 'Not available' }}"
+            echo "**All upload URLs:** ${{ steps.upload_multipart.outputs.upload_urls || '[]' }}"
+            echo ""
+          fi
+
+          # Large Multipart Test Results
+          if [ "${{ inputs.test_scenario }}" = "large-multipart-test" ]; then
+            echo "### 📦 Large Multipart Upload Test Results"
+            echo "**Files processed:** ${{ steps.upload_multipart.outputs.files_processed || '0' }}"
+            echo "**Bytes transferred:** ${{ steps.upload_multipart.outputs.bytes_transferred || '0' }}"
+            echo "**Success count:** ${{ steps.upload_multipart.outputs.success_count || '0' }}"
+            echo "**Error count:** ${{ steps.upload_multipart.outputs.error_count || '0' }}"
+            echo "**First upload URL:** ${{ steps.upload_multipart.outputs.first_upload_url || 'Not available' }}"
+            echo "**All upload URLs:** ${{ steps.upload_multipart.outputs.upload_urls || '[]' }}"
+            echo ""
+          fi
+
+          echo "---"
+          echo ""
+          echo "### 📋 How to Use These URLs"
+          echo "- **Direct URLs** (for public files): Can be accessed directly in browser"
+          echo "- **Signed URLs** (for private files): Valid for 1 hour, provide temporary access"
+          echo "- **JSON Array**: Contains all upload URLs in JSON format for parsing"
+          echo "- **First URL**: Convenience output for single file uploads"
+          echo ""
 
       - name: Verify Upload Results
         run: |
