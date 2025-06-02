@@ -14,7 +14,6 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
 - **📁 Structure Preservation** - Option to preserve or flatten directory structure
 - **🔍 Dry Run Mode** - Preview operations without executing
 - **📥 Download Support** - Download files from OBS with pattern matching
-- **🔄 Sync Operations** - Synchronize local and remote directories (coming soon)
 
 ## 🚀 Quick Start
 
