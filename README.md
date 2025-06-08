@@ -1,7 +1,7 @@
 # GH OBS Helper
 
 [![GitHub](https://img.shields.io/github/license/diverger/gh-obs-helper)](https://github.com/diverger/gh-obs-helper/blob/main/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/divergr/gh-obs-helper)](https://github.com/diverger/gh-obs-helper/releases)
+[![GitHub release](https://img.shields.io/github/release/diverger/gh-obs-helper)](https://github.com/diverger/gh-obs-helper/releases)
 [![Build and Package](https://github.com/diverger/gh-obs-helper/actions/workflows/build-and-package.yml/badge.svg)](https://github.com/diverger/gh-obs-helper/actions)
 
 A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) with unlimited file support, wildcard patterns, and parallel uploads.
