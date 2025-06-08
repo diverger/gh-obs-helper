@@ -70,3 +70,4 @@ test-files/
 
 # Test files - ignore large binary files
 test-files/large-file.bin
+/RELEASE_NOTES_backup_*.md
