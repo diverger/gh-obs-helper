@@ -42,7 +42,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-file.txt
-          obs_path: quick-test/
+          obs_path: gh-obs-helper/quick-test/
           progress: true
           dry_run: false
 

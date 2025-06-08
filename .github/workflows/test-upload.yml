@@ -82,7 +82,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-files/simple.txt
-          obs_path: test-uploads/single/
+          obs_path: gh-obs-helper/test-uploads/single/
           progress: true
           dry_run: false
 
@@ -97,7 +97,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-files/documents/doc1.txt,test-files/documents/doc2.txt,test-files/images/image1.jpg
-          obs_path: test-uploads/multiple/
+          obs_path: gh-obs-helper/test-uploads/multiple/
           progress: true
           concurrency: 3
 
@@ -112,7 +112,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-files/
-          obs_path: test-uploads/directory/
+          obs_path: gh-obs-helper/test-uploads/directory/
           preserve_structure: true
           progress: true
           concurrency: 5
@@ -128,7 +128,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-files/**/*.txt
-          obs_path: test-uploads/wildcard/
+          obs_path: gh-obs-helper/test-uploads/wildcard/
           exclude: "*.bin,*large*"
           preserve_structure: true
           progress: true
@@ -144,7 +144,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-files/large-file.bin
-          obs_path: test-uploads/large/
+          obs_path: gh-obs-helper/test-uploads/large/
           progress: true
           checksum_validation: true
           storage_class: STANDARD
@@ -161,7 +161,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-files/large-multipart-test.bin
-          obs_path: test-uploads/multipart/
+          obs_path: gh-obs-helper/test-uploads/multipart/
           progress: true
           checksum_validation: true
           storage_class: STANDARD
@@ -281,7 +281,7 @@ jobs:
             echo "  - Look for: '✅ Large file uploaded successfully'"
             echo ""
             echo "### 🔍 What to Verify in OBS:"
-            echo "- File should be uploaded to: test-uploads/multipart/large-multipart-test.bin"
+            echo "- File should be uploaded to: gh-obs-helper/test-uploads/multipart/large-multipart-test.bin"
             echo "- File size should be exactly 1,258,291,200 bytes (1.2GB)"
             echo "- No 403 Forbidden errors should occur"
           fi

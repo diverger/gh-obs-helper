@@ -27,7 +27,7 @@ jobs:
           bucket: ${{ secrets.OBS_BUCKET }}
           operation: 'upload'
           local_path: ${{ inputs.test_file }}
-          obs_path: 'examples/public/'
+          obs_path: 'gh-obs-helper/examples/public/'
           public_read: true
 
       - name: Upload single file (private)
@@ -40,7 +40,7 @@ jobs:
           bucket: ${{ secrets.OBS_BUCKET }}
           operation: 'upload'
           local_path: ${{ inputs.test_file }}
-          obs_path: 'examples/private/'
+          obs_path: 'gh-obs-helper/examples/private/'
           public_read: false
 
       - name: Upload multiple files
@@ -53,7 +53,7 @@ jobs:
           bucket: ${{ secrets.OBS_BUCKET }}
           operation: 'upload'
           local_path: 'test-files/*.txt'
-          obs_path: 'examples/batch/'
+          obs_path: 'gh-obs-helper/examples/batch/'
           public_read: true
 
       - name: Display URL outputs

@@ -119,7 +119,7 @@ jobs:
           bucket: ${{ secrets.OBS_BUCKET }}
           operation: upload
           local_path: build-test.txt
-          obs_path: test/
+          obs_path: gh-obs-helper/test/
           dry_run: true
         continue-on-error: true
 

@@ -24,7 +24,7 @@ on:
       remote_prefix:
         description: 'Remote prefix/path'
         required: false
-        default: 'sync-test/'
+        default: 'gh-obs-helper/sync-test/'
         type: string
 
 env:
