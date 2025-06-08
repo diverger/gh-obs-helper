@@ -1,36 +1,35 @@
 # Release Notes
 
-## 🚀 GH OBS Helper Release v1.1.8
+## 🚀 GH OBS Helper Release v1.1.9
 
 ### 🎯 What's New
-- **Enhanced Documentation**: Added professional badges for license, release, and build status to README.md
-- **CI/CD Improvements**: Streamlined GitHub release workflow with modern action
-- **Repository Cleanup**: Added automated workflow run cleanup for better repository maintenance
+- **Workflow Fixes**: Repaired corrupted GitHub workflow configuration
+- **Path Consistency**: Ensured all OBS paths use consistent repository folder structure
+- **CI/CD Stability**: Improved workflow reliability and maintainability
 
 ### 🔧 Changes
-- **Documentation Updates**: Updated README.md with status badges for better project visibility
-- **Package Metadata**: Updated author information in package.json
-- **CI/CD Modernization**: Switched from deprecated actions/create-release to softprops/action-gh-release
-- **Workflow Cleanup**: Added automated cleanup of old workflow runs to maintain repository hygiene
+- **Workflow Configuration**: Fixed corrupted `test-upload.yml` workflow inputs section
+- **OBS Path Standardization**: Confirmed all workflow files use "gh-obs-helper/" path prefix consistently
 
 ### 🐛 Bug Fixes
-- **Release Process**: Improved GitHub release creation workflow reliability
-- **Repository Maintenance**: Implemented automatic cleanup to prevent workflow run accumulation
+- **Critical Fix**: Resolved corrupted YAML structure in `test-upload.yml` workflow file
+- **Input Validation**: Fixed malformed workflow inputs that were preventing proper execution
+- **Path Consistency**: Ensured single file upload test uses correct OBS path with repository prefix
 
 ### 📋 Known Issues
 - No known issues in this release
-- All existing functionality remains stable
+- All workflows have been validated and are functioning correctly
 
 ### 🔗 Migration Guide
-- No breaking changes from v1.1.7
+- No breaking changes from v1.1.8
 - All existing workflows remain fully compatible
-- No code changes required for users
+- Workflow fixes are internal improvements that don't affect user-facing functionality
 
 ### 🛠️ Usage Example
 ```yaml
 - name: Upload to OBS
   id: upload
-  uses: diverger/gh-obs-helper@v1.1.8
+  uses: diverger/gh-obs-helper@v1.1.9
   with:
     access_key: ${{ secrets.OBS_ACCESS_KEY }}
     secret_key: ${{ secrets.OBS_SECRET_KEY }}
@@ -38,7 +37,7 @@
     bucket: 'my-bucket'
     operation: 'upload'
     local_path: 'dist/**/*'
-    obs_path: 'gh-obs-helper/releases/v1.1.8/'
+    obs_path: 'gh-obs-helper/releases/v1.1.9/'
     public_read: true
 
 - name: Use uploaded file URLs
@@ -47,5 +46,9 @@
     echo "All URLs: ${{ steps.upload.outputs.upload_urls }}"
 ```
 
+### 🙏 Contributors
+- Thank contributors
+- Mention community feedback
+
 ---
-**Full Changelog**: https://github.com/diverger/gh-obs-helper/compare/v1.1.7...v1.1.8
+**Full Changelog**: https://github.com/diverger/gh-obs-helper/compare/v1.1.8...v1.1.9
