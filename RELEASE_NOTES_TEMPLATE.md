@@ -36,7 +36,7 @@
     bucket: 'my-bucket'
     operation: 'upload'
     local_path: 'dist/**/*'
-    obs_path: 'releases/[VERSION]/'
+    obs_path: 'gh-obs-helper/releases/[VERSION]/'
     public_read: true
 
 - name: Use uploaded file URLs

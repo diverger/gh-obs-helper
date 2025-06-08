@@ -32,7 +32,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
     bucket_name: 'my-bucket'
     operation: 'upload'
     source: 'dist/**/*'
-    destination: 'releases/v1.0.0'
+    destination: 'gh-obs-helper/releases/v1.0.0'
 ```
 
 ### Download from OBS
@@ -45,7 +45,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
     region: 'cn-north-4'
     bucket_name: 'my-bucket'
     operation: 'download'
-    obs_path: 'releases/v1.0.0/'
+    obs_path: 'gh-obs-helper/releases/v1.0.0/'
     local_path: 'downloaded/'
 ```
 
@@ -77,7 +77,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
     bucket_name: 'my-bucket'
     operation: 'upload'
     source: 'dist/index.html'
-    destination: 'releases/v1.0.0/'
+    destination: 'gh-obs-helper/releases/v1.0.0/'
     public_read: true
 
 - name: Use uploaded file URL
@@ -128,7 +128,7 @@ A high-performance GitHub Action for Huawei Cloud Object Storage Service (OBS) w
     region: 'cn-north-4'
     bucket_name: 'my-bucket'
     operation: 'download'
-    obs_path: 'releases/v1.0.0/'
+    obs_path: 'gh-obs-helper/releases/v1.0.0/'
     local_path: 'downloaded/'
 ```
 

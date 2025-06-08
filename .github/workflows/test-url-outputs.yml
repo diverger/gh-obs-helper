@@ -54,7 +54,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-files/simple.txt
-          obs_path: test-urls/public/
+          obs_path: gh-obs-helper/test-urls/public/
           public_read: true
           progress: true
 
@@ -69,7 +69,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-files/data.json
-          obs_path: test-urls/private/
+          obs_path: gh-obs-helper/test-urls/private/
           public_read: false
           progress: true
 
@@ -83,7 +83,7 @@ jobs:
           bucket: ${{ env.OBS_BUCKET }}
           operation: upload
           local_path: test-files/documents/doc1.txt,test-files/documents/doc2.txt,test-files/images/image1.jpg
-          obs_path: test-urls/batch/
+          obs_path: gh-obs-helper/test-urls/batch/
           public_read: ${{ inputs.test_type == 'public-urls' }}
           progress: true
 

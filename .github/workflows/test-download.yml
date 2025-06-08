@@ -15,7 +15,7 @@ on:
       remote_path:
         description: 'Remote path to download from'
         required: false
-        default: 'test-uploads/'
+        default: 'gh-obs-helper/test-uploads/'
         type: string
 
 env:
