@@ -31,5 +31,8 @@
     "@vercel/ncc": "^0.38.1",
     "jest": "^30.0.0",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "glob": "^11.0.3"
   }
 }
