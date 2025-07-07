@@ -4297,110 +4297,6 @@ formatters.O = function (v) {
 
 /***/ }),
 
-/***/ 9408:
-/***/ ((module) => {
-
-/**
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
- * this file except in compliance with the License.  You may obtain a copy of the
- * License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations under the License.
- *
- */
-
-const operations = {
-
-    'ListBuckets' : {
-		'httpMethod' : 'GET',
-		'parameters' : {
-			'BucketType': {
-				'location': 'header',
-				'sentAs': 'bucket-type',
-				'withPrefix': true
-			},
-			'Marker' : {
-				'location' : 'urlPath',
-				'sentAs' : 'marker',
-			},
-			'MaxKeys' : {
-				'type' : 'number',
-				'location' : 'urlPath',
-				'sentAs' : 'max-keys',
-			},
-		}
-	},
-
-	'ListBucketsOutput' : {
-		'data' : {
-			'type' : 'xml',
-			'xmlRoot' : 'ListAllMyBucketsResult',
-		},
-		'parameters' : {
-			'Owner' : {
-				'type' : 'object',
-				'location' : 'xml',
-				'sentAs' : 'Owner',
-				'parameters' : {
-					'ID' : {
-						'sentAs' : 'ID',
-					},
-				},
-
-			},
-			'Marker' : {
-				'location' : 'xml',
-				'sentAs' : 'Marker',
-			},
-			'IsTruncated' : {
-				'location' : 'xml',
-				'sentAs' : 'IsTruncated',
-			},
-			'NextMarker' : {
-				'location' : 'xml',
-				'sentAs' : 'NextMarker',
-			},
-			'MaxKeys' : {
-				'location' : 'xml',
-				'sentAs' : 'MaxKeys',
-			},
-			'Buckets' : {
-				'type' : 'array',
-				'location' : 'xml',
-				'wrapper' : 'Buckets',
-				'sentAs' : 'Bucket',
-				'items' : {
-					'type' : 'object',
-					'parameters' : {
-						'BucketName' : {
-							'sentAs' : 'Name',
-						},
-						'CreationDate' : {
-							'sentAs' : 'CreationDate'
-						},
-						'Location' : {
-							'sentAs' : 'Location'
-						},
-						'BucketType' : {
-							'sentAs' : 'BucketType'
-						}
-					},
-				},
-			},
-		},
-	},
-}
-
-module.exports = operations;
-
-
-/***/ }),
-
 /***/ 8208:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -4419,8 +4315,6 @@ module.exports = operations;
  *
  */
 
-
-
 exports.AclPrivate = 'private';
 exports.AclPublicRead = 'public-read';
 exports.AclPublicReadWrite = 'public-read-write';
@@ -4434,6 +4328,8 @@ exports.AclLogDeliveryWrite = 'log-delivery-write';
 exports.StorageClassStandard = 'STANDARD';
 exports.StorageClassWarm = 'WARM';
 exports.StorageClassCold = 'COLD';
+exports.StorageClassDeepArchive = 'DEEP_ARCHIVE';
+exports.StorageClassIntelligentTiering = 'INTELLIGENT_TIERING';
 
 exports.PermissionRead = 'READ';
 exports.PermissionWrite = 'WRITE';
@@ -4480,6 +4376,9 @@ exports.MIN_UPLOAD_PART_SIZE = 100 * KB;
 exports.MAX_DOWNLOAD_PART_SIZE = 5 * GB;
 exports.DEFAULT_DOWNLOAD_PART_SIZE = 5 * MB;
 exports.MIN_DOWNLOAD_PART_SIZE = 100 * KB;
+
+exports.IAM_DOMAIN_PATH_EXTENSION = '/v3.0/OS-CREDENTIAL/securitytokens'; 
+
 
 /***/ }),
 
@@ -4679,68 +4578,76 @@ function capitalize(key){
 }
 
 const methods = [
-	'headBucket',
-	'getBucketMetadata',
-	'deleteBucket',
-	'setBucketQuota',
-	'getBucketQuota',
-	'getBucketStorageInfo',
-	'setBucketPolicy',
-	'getBucketPolicy',
-	'deleteBucketPolicy',
-	'setBucketVersioningConfiguration',
-	'getBucketVersioningConfiguration',
-	'getBucketLocation',
-	'listVersions',
-	'listObjects',
-	'setBucketLifecycleConfiguration',
-	'getBucketLifecycleConfiguration',
-	'deleteBucketLifecycleConfiguration',
-	'setBucketAcl',
-	'getBucketAcl',
-	'setBucketLoggingConfiguration',
-	'getBucketLoggingConfiguration',
-	'setBucketWebsiteConfiguration',
-	'getBucketWebsiteConfiguration',
-	'deleteBucketWebsiteConfiguration',
-	'setBucketNotification',
-	'getBucketNotification',
-	'setBucketTagging',
-	'deleteBucketTagging',
-	'getBucketTagging',
-	'setObjectTagging',
-	'deleteObjectTagging',
-	'getObjectTagging',
-	'setBucketReplication',
-	'deleteBucketReplication',
-	'getBucketReplication',
-	'getObject',
-	'setObjectMetadata',
-	'getObjectMetadata',
-	'setObjectAcl',
-	'getObjectAcl',
-	'deleteObject',
-	'deleteObjects',
-	'listMultipartUploads',
-	'listParts',
-	'abortMultipartUpload',
-	'completeMultipartUpload',
-	'setBucketCors',
-	'getBucketCors',
-	'deleteBucketCors',
-	'optionsBucket',
-	'optionsObject',
-	'setBucketStoragePolicy',
-	'getBucketStoragePolicy',
-	'getBucketEncryption',
-	'setBucketEncryption',
-	'deleteBucketEncryption',
-	'getBucketDirectColdAccess',
-	'setBucketDirectColdAccess',
-	'deleteBucketDirectColdAccess',
-	'renameObject',
-	'getBucketRequesterPayment',
-	'setBucketRequesterPayment',
+    'headBucket',
+    'getBucketMetadata',
+    'deleteBucket',
+    'setBucketQuota',
+    'getBucketQuota',
+    'getBucketStorageInfo',
+    'setBucketPolicy',
+    'getBucketPolicy',
+    'deleteBucketPolicy',
+    'setBucketVersioningConfiguration',
+    'getBucketVersioningConfiguration',
+    'getBucketLocation',
+    'listVersions',
+    'listObjects',
+    'setBucketLifecycleConfiguration',
+    'getBucketLifecycleConfiguration',
+    'deleteBucketLifecycleConfiguration',
+    'setBucketAcl',
+    'getBucketAcl',
+    'setBucketLoggingConfiguration',
+    'getBucketLoggingConfiguration',
+    'setBucketWebsiteConfiguration',
+    'getBucketWebsiteConfiguration',
+    'deleteBucketWebsiteConfiguration',
+    'setBucketNotification',
+    'getBucketNotification',
+    'setBucketTagging',
+    'deleteBucketTagging',
+    'getBucketTagging',
+    'setObjectTagging',
+    'deleteObjectTagging',
+    'getObjectTagging',
+    'setBucketReplication',
+    'deleteBucketReplication',
+    'getBucketReplication',
+    'getObject',
+    'setObjectMetadata',
+    'getObjectMetadata',
+    'setObjectAcl',
+    'getObjectAcl',
+    'deleteObject',
+    'deleteObjects',
+    'listMultipartUploads',
+    'listParts',
+    'abortMultipartUpload',
+    'completeMultipartUpload',
+    'setBucketCors',
+    'getBucketCors',
+    'deleteBucketCors',
+    'optionsBucket',
+    'optionsObject',
+    'setBucketStoragePolicy',
+    'getBucketStoragePolicy',
+    'getBucketEncryption',
+    'setBucketEncryption',
+    'deleteBucketEncryption',
+    'getBucketDirectColdAccess',
+    'setBucketDirectColdAccess',
+    'deleteBucketDirectColdAccess',
+    'renameObject',
+    'getBucketRequesterPayment',
+    'setBucketRequesterPayment',
+    'putBucketPublicAccessBlock',
+    'getBucketPublicAccessBlock',
+    'deleteBucketPublicAccessBlock',
+    'getBucketPolicyPublicStatus',
+    'getBucketPublicStatus',
+    'setBucketCustomDomain',
+    'getBucketCustomDomain',
+    'deleteBucketCustomDomain',
 ];
 
 function createAction(method){
@@ -6096,6 +6003,12 @@ ObsClient.prototype.close = function(){
 	}
 };
 
+ObsClient.prototype.refreshShadowClient = function () {
+  if (this.util) {
+    this.util.refreshShadowClient();
+	}
+};
+
 ObsClient.prototype.exec = function(funcName, param, callback){
 	let _log = this.log;
 	if(_log.isLevelEnabled('info')){
@@ -6141,11 +6054,11 @@ ObsClient.prototype.factory = function(param){
 	this.util.initFactory(param.access_key_id, param.secret_access_key, param.is_secure,
 			param.server, param.path_style, param.signature, param.region, param.port, param.max_retry_count,
 			param.timeout, param.ssl_verify, param.long_conn_param, param.security_token, param.is_signature_negotiation, param.is_cname,
-			param.max_connections, param.http_agent, param.https_agent, param.user_agent, param.third_http_lib, param.no_proxy_list);
+			param.max_connections, param.http_agent, param.https_agent, param.user_agent, param.third_http_lib, param.no_proxy_list,param.is_shadow_client, param.iam_domain, param.shadow_expires);
 };
 
-ObsClient.prototype.refresh = function(access_key_id, secret_access_key, security_token){
-	this.util.refresh(access_key_id, secret_access_key, security_token);
+ObsClient.prototype.refresh = function(access_key_id, secret_access_key, security_token,is_shadow_client){
+	this.util.refresh(access_key_id, secret_access_key, security_token,is_shadow_client);
 };
 
 ObsClient.prototype.enums = enums;
@@ -6193,7 +6106,7 @@ module.exports = ObsClient;
 /***/ }),
 
 /***/ 8567:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module) => {
 
 /**
  * Copyright 2019 Huawei Technologies Co.,Ltd.
@@ -6210,7 +6123,6 @@ module.exports = ObsClient;
  *
  */
 
-const baseModelOperations = __nccwpck_require__(9408)
 const owner = {
 	'type' : 'object',
 	'location' : 'xml',
@@ -6736,8 +6648,54 @@ const bucketEncryptionRule = {
 	}
 };
 
+const PublicAccessBlockBody = {
+    'BlockPublicAcls' : {
+        'location' : 'xml',
+        'sentAs' : 'BlockPublicAcls',
+    },
+    'IgnorePublicAcls' : {
+        'location' : 'xml',
+        'sentAs' : 'IgnorePublicAcls',
+    },
+    'BlockPublicPolicy' : {
+        'location' : 'xml',
+        'sentAs' : 'BlockPublicPolicy',
+    },
+    'RestrictPublicBuckets' : {
+        'location' : 'xml',
+        'sentAs' : 'RestrictPublicBuckets',
+    }
+};
+
+const CustomDomainCertificateConfig = {
+	'type': 'object',
+	'location': 'xml',
+	'required': false,
+	'sentAs': 'CustomDomainConfiguration',
+	'parameters': {
+		'Name': {
+			'type': 'string',
+			'required': true
+		},
+		'CertificateId': {
+			'type':'string',
+		},
+		'Certificate': {
+			'type': 'string',
+			'required': true,
+		},
+		'CertificateChain': {
+			'type': 'string',
+		},
+		'PrivateKey': {
+			'type': 'string',
+			'required': true,
+		}
+			
+	}
+}
+
 const operations = {
-	...baseModelOperations,
 	'CreateBucket' : {
 		'httpMethod' : 'PUT',
 		'data' : {
@@ -6823,7 +6781,86 @@ const operations = {
 		}
 	},
 	
+    'ListBuckets' : {
+		'httpMethod' : 'GET',
+		'parameters' : {
+			'BucketType': {
+				'location': 'header',
+				'sentAs': 'bucket-type',
+				'withPrefix': true
+			},
+			'Marker' : {
+				'location' : 'urlPath',
+				'sentAs' : 'marker',
+			},
+			'MaxKeys' : {
+				'type' : 'number',
+				'location' : 'urlPath',
+				'sentAs' : 'max-keys',
+			},
+		}
+	},
 
+	'ListBucketsOutput' : {
+		'data' : {
+			'type' : 'xml',
+			'xmlRoot' : 'ListAllMyBucketsResult',
+		},
+		'parameters' : {
+			'Owner' : {
+				'type' : 'object',
+				'location' : 'xml',
+				'sentAs' : 'Owner',
+				'parameters' : {
+					'ID' : {
+						'sentAs' : 'ID',
+					},
+					'Name' : {
+						'sentAs' : 'DisplayName',
+					},
+				},
+			},
+			'Marker' : {
+				'location' : 'xml',
+				'sentAs' : 'Marker',
+			},
+			'IsTruncated' : {
+				'location' : 'xml',
+				'sentAs' : 'IsTruncated',
+			},
+			'NextMarker' : {
+				'location' : 'xml',
+				'sentAs' : 'NextMarker',
+			},
+			'MaxKeys' : {
+				'location' : 'xml',
+				'sentAs' : 'MaxKeys',
+			},
+			'Buckets' : {
+				'type' : 'array',
+				'location' : 'xml',
+				'wrapper' : 'Buckets',
+				'sentAs' : 'Bucket',
+				'items' : {
+					'type' : 'object',
+					'parameters' : {
+						'BucketName' : {
+							'sentAs' : 'Name',
+						},
+						'CreationDate' : {
+							'sentAs' : 'CreationDate'
+						},
+						'Location' : {
+							'sentAs' : 'Location'
+						},
+						'BucketType' : {
+							'sentAs' : 'BucketType'
+						}
+					},
+				},
+			},
+		},
+	},
 	
 	'HeadBucket' : {
 		'httpMethod' : 'HEAD',
@@ -8127,6 +8164,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -8200,6 +8242,11 @@ const operations = {
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
 			},
 			'SseKmsKeyObs' :{
 				'location' : 'header',
@@ -8356,6 +8403,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -8430,6 +8482,11 @@ const operations = {
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
 			},
 			'SseKmsKeyObs' :{
 				'location' : 'header',
@@ -8571,6 +8628,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -8648,6 +8710,11 @@ const operations = {
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
 			},
 			'SseKmsKeyObs' :{
 				'location' : 'header',
@@ -8959,6 +9026,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseKmsKeyObs' :{
 				'location' : 'header',
 				'sentAs' : 'x-obs-server-side-encryption-kms-key-id',
@@ -9146,6 +9218,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -9233,6 +9310,11 @@ const operations = {
 			'SseKmsKey' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-kms-key-id',
+				'withPrefix' : true
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
 				'withPrefix' : true
 			},
 			'SseKmsKeyObs' :{
@@ -10164,6 +10246,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -10212,6 +10299,11 @@ const operations = {
 			'SseKmsKey' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-kms-key-id',
+				'withPrefix' : true
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
 				'withPrefix' : true
 			},
 			'SseC' :{
@@ -10429,6 +10521,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -10634,6 +10731,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -10753,6 +10855,11 @@ const operations = {
 			'SseKmsKey' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-kms-key-id',
+				'withPrefix' : true
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
 				'withPrefix' : true
 			},
 			'SseC' :{
@@ -10992,6 +11099,164 @@ const operations = {
 		'parameters' : {
 			'Rule' : bucketEncryptionRule
 		}
+	},
+	'PutBucketPublicAccessBlock' : {
+		'httpMethod' : 'PUT',
+		'urlPath' : 'publicAccessBlock',
+		'data' : {
+			'xmlRoot' : 'PublicAccessBlockConfiguration'
+		},
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+					'location' : 'uri'
+			},
+			...PublicAccessBlockBody
+		}
+	},
+	'GetBucketPublicAccessBlock' : {
+		'httpMethod' : 'GET',
+		'urlPath' : 'publicAccessBlock',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+					'location' : 'uri'
+			},
+		}
+	},
+	'GetBucketPublicAccessBlockOutput' : {
+		'data' : {
+			'type' : 'xml',
+			'xmlRoot' : 'PublicAccessBlockConfiguration'
+		},
+		"parameters": {
+			...PublicAccessBlockBody
+		}
+	},
+	'DeleteBucketPublicAccessBlock' : {
+		'httpMethod' : 'DELETE',
+		'urlPath' : 'publicAccessBlock',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+					'location' : 'uri'
+			},
+		}
+	},
+	'GetBucketPolicyPublicStatus' : {
+		'httpMethod' : 'GET',
+		'urlPath' : 'policyStatus',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+					'location' : 'uri'
+			},
+		}
+	},
+	'GetBucketPolicyPublicStatusOutput' : {
+		'data' : {
+			'type' : 'xml',
+			'xmlRoot' : 'PolicyStatus'
+		},
+		"parameters": {
+			'IsPublic' : {
+				'location' : 'xml',
+				'sentAs' : 'IsPublic',
+			}, 
+		}
+	},
+	'GetBucketPublicStatus' : {
+		'httpMethod' : 'GET',
+		'urlPath' : 'bucketStatus',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+				'location' : 'uri'
+			},
+		}
+	},
+	'GetBucketPublicStatusOutput' : {
+		'data' : {
+			'type' : 'xml',
+			'xmlRoot' : 'BucketStatus'
+		},
+		"parameters": {
+			'IsPublic' : {
+				'location' : 'xml',
+				'sentAs' : 'IsPublic',
+			}, 
+		}
+	},
+	'SetBucketCustomDomain' : {
+		'httpMethod' : 'PUT',
+		// 'urlPath' : 'customdomain',
+		'data' : {
+			'md5' : true
+		},
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+				'location': 'uri',
+			},
+			'DomainName' : {
+				'required': true,
+				'location': 'urlPath',
+				'sentAs':'customdomain'
+			},
+			'DomainBody':CustomDomainCertificateConfig
+		}
+	},
+	'GetBucketCustomDomain' : {
+		'httpMethod' : 'GET',
+		'urlPath' : 'customdomain',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+				'location': 'uri',
+				'type': 'string'
+			},
+		}
+	},
+	'GetBucketCustomDomainOutput': {
+		'data': {
+			'type': 'xml',
+			'xmlRoot': 'ListBucketCustomDomainsResult'
+		},
+		'parameters': {
+			'Domains': {
+				'location': 'xml',
+				'sentAs': 'Domains',
+				'type': 'array',
+				'items': {
+					'type': 'object',
+					'parameters': {
+						'DomainName': {
+							'sentAs': 'DomainName',
+						},
+						'Value': {
+							'sentAs': 'CreateTime',
+						},
+						'CertificateId': {
+							'sentAs': 'CertificateId',
+						}
+					},
+				}
+			}
+		}
+	},
+	'DeleteBucketCustomDomain' : {
+		'httpMethod' : 'DELETE',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+				'location' : 'uri'
+			},
+			'DomainName': {
+				'required': true,
+				'location': 'urlPath',
+				'sentAs':'customdomain'
+			}
+		}
 	}
 };
 
@@ -11029,17 +11294,19 @@ const pathLib = __nccwpck_require__(6928);
 const streamLib = __nccwpck_require__(2203);
 const obsModel = __nccwpck_require__(8567);
 const v2Model = __nccwpck_require__(5755);
-
+const enums = __nccwpck_require__(8208);
 const options = {
 	ignoreAttributes: true,
 	parseTagValue: false,
 	trimValues: false
 };
-
+const {
+	IAM_DOMAIN_PATH_EXTENSION
+} = enums;
 const parser = new XMLParser(options);
-
+const DEFAULT_SHADOW_EXPIRES = 15 * 60;
 const CONTENT_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-const OBS_SDK_VERSION = '3.24.3';
+const OBS_SDK_VERSION = '3.24.12';
 
 const mimeTypes = {
     '7z' : 'application/x-7z-compressed',
@@ -11081,6 +11348,7 @@ const mimeTypes = {
     'jpeg' : 'image/jpeg',
     'jpg' : 'image/jpeg',
     'js' : 'text/javascript',
+    'mjs' : 'text/javascript',
     'json' : 'application/json',
     'latex' : 'application/x-latex',
     'log' : 'text/plain',
@@ -11207,6 +11475,11 @@ const allowedResourceParameterNames = [
 	// virtual bucket api
 	'obsbucketalias',
 	'obsalias',
+	'publicaccessblock',
+	'bucketstatus',
+	'policystatus',
+
+	'customdomain'
 ];
 
 
@@ -11242,9 +11515,10 @@ const commonHeaders = {
 	'x-reserved' : 'Reserved'
 };
 
-const obsAllowedStorageClass = ['STANDARD', 'WARM', 'COLD'];
+const obsAllowedStorageClass = ['STANDARD', 'WARM', 'COLD', 'DEEP_ARCHIVE', 'INTELLIGENT_TIERING', 'HIGH_PERFORMANCE'];
 
-const v2AllowedStorageClass = ['STANDARD', 'STANDARD_IA', 'GLACIER'];
+// 服务端暂不支持S3协议的INTELLIGENT_TIERING、INTELLIGENT_TIERING
+const v2AllowedStorageClass = ['STANDARD', 'STANDARD_IA', 'GLACIER', 'DEEP_ARCHIVE', 'INTELLIGENT_TIERING', 'HIGH_PERFORMANCE'];
 
 const obsAllowedAcl = ['private', 'public-read', 'public-read-write', 'public-read-delivered', 'public-read-write-delivered','bucket-owner-full-control'];
 
@@ -11260,6 +11534,8 @@ const v2AllowedEvent = ['s3:ObjectCreated:*', 's3:ObjectCreated:Put', 's3:Object
     's3:ObjectCreated:CompleteMultipartUpload', 's3:ObjectRemoved:*', 's3:ObjectRemoved:Delete', 's3:ObjectRemoved:DeleteMarkerCreated'];
 
 const negotiateMethod = 'HeadApiVersion';
+
+const customDomainCertificateMethod = 'SetBucketCustomDomain'
 
 const obsSignatureContext = {
 	signature :	'obs',
@@ -11364,7 +11640,6 @@ function makeObjFromXml(xml, methodName, log, bc){
 		return bc(err, null);
 	}
 }
-
 
 function getExpireDate(utcDateStr){
 	let date = new Date(Date.parse(utcDateStr));
@@ -11483,10 +11758,26 @@ function getV4Signature(shortDate, longDate, sk, region, canonicalRequest){
 	return createV4Signature(shortDate, sk, region, stringToSign);
 }
 
+
+
+function getXSdkDateIAMCloud() { // To get the x-sdk-date for Iamcloud
+  const now = new Date(); 
+  const year = now.getUTCFullYear(); 
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(now.getUTCDate()).padStart(2, '0'); 
+  const hours = String(now.getUTCHours()).padStart(2, '0'); 
+  const minutes = String(now.getUTCMinutes()).padStart(2, '0'); 
+  const seconds = String(now.getUTCSeconds()).padStart(2, '0'); 
+
+  return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+}
+
 function Utils(logger) {
 	this.log = logger;
 	this.ak = null;
 	this.sk = null;
+	this.permanentAk = null;
+	this.permanentSk = null;
 	this.securityToken = null;
 	this.isSecure = true; 
 	this.server = null;
@@ -11507,6 +11798,12 @@ function Utils(logger) {
 	this.bucketEventEmitters = {};
 	this.maxConnections = 1000;
 	this.userAgent = 'obs-sdk-js/' + this.obsSdkVersion;
+	this.iam_domain = null;
+	this.shadow_expires = DEFAULT_SHADOW_EXPIRES;
+	this.is_shadow_client = false;
+	this.shadow_expires_at = null
+	this.shadow_expires_at_milliseconds = null
+	this.is_shadow_client_ready = false
 }
 
 Utils.prototype.encodeURIWithSafe = encodeURIWithSafe;
@@ -11525,45 +11822,75 @@ Utils.prototype.close = function(){
 	}
 };
 
-Utils.prototype.refresh = function(ak, sk, securityToken){
+Utils.prototype.refresh = async function (ak, sk, securityToken, is_shadow_client) {
 	this.ak = ak ? String(ak).trim() : null;
 	this.sk = sk ? String(sk).trim(): null;
 	this.securityToken = securityToken ? String(securityToken).trim() : null;
+	
+	if (is_shadow_client) {
+		await this.getTemporaryKeysFromCloudAlliance(this.ak, this.sk,this.iam_domain, this.shadow_expires)
+	}
 };
 
-Utils.prototype.initFactory = function(ak, sk, isSecure,
-		server, pathStyle, signature, region, port, maxRetryCount, timeout, sslVerify, longConnection, securityToken, 
-		isSignatureNegotiation, isCname, maxConnections, httpAgent, httpsAgent, userAgent, thirdHttpLib, noProxyList){
+Utils.prototype.initFactory = function (ak, sk, isSecure,
+	server, pathStyle, signature, region, port, maxRetryCount, timeout, sslVerify, longConnection, securityToken,
+	isSignatureNegotiation, isCname, maxConnections, httpAgent, httpsAgent, userAgent, thirdHttpLib, noProxyList, is_shadow_client, iam_domain, shadow_expires) {
+
+	this.is_shadow_client = is_shadow_client
+	this.iam_domain = iam_domain
+		
+	shadow_expires = Number(shadow_expires)
+
+	if (shadow_expires && (shadow_expires < (15 * 60) || shadow_expires > (60 * 60 * 24))) {
+		throw new Error('Expire time is not valid!');
+	}
+
+	if (shadow_expires) {
+		this.shadow_expires = shadow_expires
+	}
+
+	if (httpAgent !== undefined) {
+		this.httpAgent = httpAgent;
+	}
 	
-	this.refresh(ak, sk, securityToken);
+	if (httpsAgent !== undefined) {
+		this.httpsAgent = httpsAgent;
+	}
+
+	this.refresh(ak, sk, securityToken, is_shadow_client);
 
 	if (!server) {
 		throw new Error('Server is not set');
 	}
+
+	if (is_shadow_client === true && !iam_domain) {
+		throw new Error('iam_domain is not set');
+	}
+
 	server = String(server).trim();
 	
-	if(server.indexOf('https://') === 0){
+	if (server.indexOf('https://') === 0) {
 		server = server.slice('https://'.length);
 		isSecure = true;
-	}else if(server.indexOf('http://') === 0){
+	} else if (server.indexOf('http://') === 0) {
 		server = server.slice('http://'.length);
 		isSecure = false;
 	}
 	
 	let index = server.lastIndexOf('/');
-	while(index >= 0){
+	while (index >= 0) {
 		server = server.slice(0, index);
 		index = server.lastIndexOf('/');
 	}
 	
 	index = server.indexOf(':');
-	if(index >= 0){
+	if (index >= 0) {
 		port = server.slice(index + 1);
 		server = server.slice(0, index);
 	}
 	this.server = server;
 	
-	if(/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(this.server)){
+	if (/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(this.server)) {
 		pathStyle = true;
 	}
 	
@@ -11576,56 +11903,48 @@ Utils.prototype.initFactory = function(ak, sk, isSecure,
 	
 	if (signature !== undefined) {
 		signature = String(signature).trim().toLowerCase();
-	}else{
+	} else {
 		signature = 'obs';
 	}
 	
-	if(isSignatureNegotiation !== undefined){
+	if (isSignatureNegotiation !== undefined) {
 		this.isSignatureNegotiation = isSignatureNegotiation;
 	}
 
 	this.isCname = isCname;
 	
-	if(this.pathStyle || this.isCname){
+	if (this.pathStyle || this.isCname) {
 		this.isSignatureNegotiation = false;
-		if(signature === 'obs'){
+		if (signature === 'obs') {
 			signature = 'v2';
 		}
 	}
 	
 	this.signatureContext = signature === 'obs' ? obsSignatureContext : v2SignatureContext;
 	
-	if(region !== undefined){
+	if (region !== undefined) {
 		this.region = String(region).trim();
 	}
 	
 	this.port = port ? parseInt(port, 10) : (this.isSecure ? 443 : 80);
 	
-	if(maxRetryCount !== undefined){
+	if (maxRetryCount !== undefined) {
 		this.maxRetryCount = parseInt(maxRetryCount, 10);
 	}
 	
-	if(timeout !== undefined){
+	if (timeout !== undefined) {
 		this.timeout = parseInt(timeout, 10);
 	}
 	
-	if(sslVerify !== undefined){
+	if (sslVerify !== undefined) {
 		this.sslVerify = sslVerify;
 	}
 	
-	if(maxConnections !== undefined){
+	if (maxConnections !== undefined) {
 		this.maxConnections = parseInt(maxConnections, 10);
 	}
 	
-	if(httpAgent !== undefined){
-		this.httpAgent = httpAgent;
-	}
-	
-	if(httpsAgent !== undefined){
-		this.httpsAgent = httpsAgent;
-	}
-	
-	if(userAgent){
+	if (userAgent) {
 		this.userAgent = userAgent;
 	}
 
@@ -11642,17 +11961,180 @@ Utils.prototype.initFactory = function(ak, sk, isSecure,
 		this.thirdHttpLib = thirdHttpLib;
 	}
 	
-	if(longConnection !== undefined && Number(longConnection) >= 0){
-		if(!this.httpAgent){
-			this.httpAgent = new httpLib.Agent({keepAlive : true, keepAliveMsecs : Number(longConnection) * 1000, maxSockets : this.maxConnections, maxFreeSockets : this.maxConnections});
+	if (longConnection !== undefined && Number(longConnection) >= 0) {
+		if (!this.httpAgent) {
+			this.httpAgent = new httpLib.Agent({ keepAlive: true, keepAliveMsecs: Number(longConnection) * 1000, maxSockets: this.maxConnections, maxFreeSockets: this.maxConnections });
 		}
-		if(!this.httpsAgent){
-			this.httpsAgent = new httpsLib.Agent({keepAlive : true, keepAliveMsecs : Number(longConnection) * 1000, maxSockets : this.maxConnections, maxFreeSockets : this.maxConnections});
+		if (!this.httpsAgent) {
+			this.httpsAgent = new httpsLib.Agent({ keepAlive: true, keepAliveMsecs: Number(longConnection) * 1000, maxSockets: this.maxConnections, maxFreeSockets: this.maxConnections });
 		}
 	}
-	
-};
 
+	
+}
+
+function generateSignatureCloudAlliance(request, ak, sk) {
+	let access = ak;
+	let secret = sk;
+	let rawHost = request.host;
+	let rawUri = request.path;
+	let rawBody = request.body || "";
+	let rawQueryString = request.queryString || "";
+
+
+	const XSdkDate = getXSdkDateIAMCloud()
+	const HTTPRequestMethod = request.method;
+	const CanonicalURI = rawUri + "/";
+	const CanonicalQueryString = rawQueryString;
+	const CanonicalHeaders = `content-type:application/json\nhost:${rawHost}\nx-sdk-date:${XSdkDate}\n`;
+	const SignedHeaders = "content-type;host;x-sdk-date";
+
+	const HashedRequestPayload = crypto.createHash('sha256').update(rawBody).digest('hex');
+	const CanonicalRequest = `${HTTPRequestMethod}\n${CanonicalURI}\n${CanonicalQueryString}\n${CanonicalHeaders}\n${SignedHeaders}\n${HashedRequestPayload}`;
+	const HashedCanonicalRequest = crypto.createHash('sha256').update(CanonicalRequest).digest('hex');
+
+	const Algorithm = "SDK-HMAC-SHA256";
+	const StringToSign = `${Algorithm}\n${XSdkDate}\n${HashedCanonicalRequest}`;
+	const Signature = crypto.createHmac('sha256', secret).update(StringToSign).digest('hex');
+
+	return {
+			Host: rawHost,
+			XSdkDate,
+			Authorization: `${Algorithm} Access=${access}, SignedHeaders=${SignedHeaders}, Signature=${Signature}`
+	};
+}
+
+function parseExpirationTime(expiresAtStr) {
+    return new Date(expiresAtStr).getTime(); // Convert to milliseconds
+}
+
+Utils.prototype.waitForCloudAllianceGetsReady = async function() {
+	const startTime = Date.now();
+	const timeout = 60 * 1000; // 60 seconds
+	
+	while (!this.is_shadow_client_ready) {
+		if (Date.now() - startTime > timeout) {
+    	throw new Error("Timeout: Shadow client not ready");
+		}
+		await new Promise(resolve => setTimeout(resolve, 1000)); 
+	}		
+}
+
+Utils.prototype.refreshShadowClient = async function () {
+	await this.waitForCloudAllianceGetsReady();
+
+	if (!this.permanentAk || !this.permanentSk) {
+		throw new Error("Initialization: Shadow client not ready");
+	}
+	this.is_shadow_client_ready = false
+	await this.getTemporaryKeysFromCloudAlliance(this.permanentAk,this.permanentSk,this.iam_domain, this.shadow_expires)
+}
+
+Utils.prototype.checkKeysExpiredAndRefresh = async function() {
+	const now = Date.now();
+	const timeLeft = this.shadow_expires_at_milliseconds - now
+	let log = this.log
+
+	if (timeLeft <= 5 * 60 * 1000) { // checks if 5 min left to expire or not
+		this.is_shadow_client_ready = false
+		log.runLog('warn', 'CloudAllianceTempKeys', 'Temp keys will expire soon, refreshing');
+		await this.getTemporaryKeysFromCloudAlliance(this.permanentAk,this.permanentSk,this.iam_domain, this.shadow_expires)
+	}
+}
+
+
+Utils.prototype.getTemporaryKeysFromCloudAlliance = async function(ak,sk,iam_domain,shadow_expires) {
+	//If is_shadow_client true, call iam-domain and get temp ak-sk
+	const request = {
+		method: 'POST',
+		host: iam_domain, 
+		path: IAM_DOMAIN_PATH_EXTENSION,
+		body: JSON.stringify({
+			auth: {
+				identity: {
+					methods: ["token"],
+					token: {
+						duration_seconds: String(shadow_expires)
+					}
+				}
+			}
+		})
+	};
+
+	
+	const validAk = this.permanentAk ? this.permanentAk : ak
+	const validSk = this.permanentSk ? this.permanentSk : sk
+
+	const { Host, XSdkDate, Authorization } = generateSignatureCloudAlliance(request, validAk, validSk);
+
+	const options = {
+		hostname: Host,
+		path: request.path + (request.queryString ? `?${request.queryString}` : ''),
+		method: request.method,
+		headers: {
+			'Content-Type': 'application/json',
+			'Host': Host,
+			'X-Sdk-Date': XSdkDate,
+			'Authorization': Authorization
+		}
+	};
+
+	if (this.httpsAgent) {
+		options.agent = this.httpsAgent
+	}
+	let log = this.log
+
+	const req = await httpsLib.request(options, (res) => {
+		
+		let responseData = '';
+		res.on('data', (chunk) => {
+			responseData += chunk;
+		});
+
+		res.on('end', () => {
+			const response = JSON.parse(responseData)
+			if (res.statusCode >= 200 && res.statusCode < 300) {
+				const validResponse = response.credential
+				this.permanentAk = validAk
+				this.permanentSk = validSk
+				this.ak = validResponse.access
+				this.sk = validResponse.secret
+				this.securityToken = validResponse.securitytoken
+				this.shadow_expires_at = validResponse.expires_at
+				this.shadow_expires_at_milliseconds = parseExpirationTime(validResponse.expires_at);
+				this.refresh(validResponse.access, validResponse.secret, this.securityToken, false);
+				this.is_shadow_client_ready = true
+				log.runLog('info', 'CloudAllianceTempKeys', 'response statusCode:' + res.statusCode );
+			} else {
+				req.removeAllListeners('abort');
+				req.abort();
+				if(log.isLevelEnabled('error')){
+					log.runLog('error', '', 'read file to send error [' + headerTostring(response.error) + ']');
+				}
+
+				throw new Error(response.error.message);
+			}
+		})
+	});
+	
+	req.on('error', (err => {
+		req.removeAllListeners('abort');
+		req.abort();
+		if(log.isLevelEnabled('error')){
+			log.runLog('error', '', 'read file to send error [' + headerTostring(err) + ']');
+		}
+		log.runLog('error', '', 'read file to send error [' + headerTostring(err) + ']');
+		if(log.isLevelEnabled('warn')){
+				log.runLog('warn', '', err);
+		}
+
+		throw new Error(err);
+	}));
+
+	req.write(request.body);
+	req.end();
+		
+}
 Utils.prototype.SseKmsAdapter = function(value, signatureContext){
 	value = value || '';
 	value = String(value);
@@ -11744,6 +12226,9 @@ Utils.prototype.StorageClassAdapter = function(value, signatureContext){
 	}
 	
 	if(v2AllowedStorageClass.indexOf(value) >= 0){
+		if(value === 'INTELLIGENT_TIERING'){
+			this.log.runLog('warn', 'Intelligent tiering supports only OBS signature');
+		}
 		return value;
 	}
 	if(value === 'WARM'){
@@ -12030,7 +12515,9 @@ Utils.prototype.buildObject = function(model, obj, key, opt, ifRootXMlDecode){
 	}
 };
 
-Utils.prototype.makeParam = function(methodName, param){
+Utils.prototype.makeParam = function (methodName, param) {
+	
+
 	let signatureContext = param.signatureContext || this.signatureContext;
 	let model = signatureContext.signature === 'obs' ? obsModel[methodName] : v2Model[methodName];
 	let method = model.httpMethod;
@@ -12044,6 +12531,11 @@ Utils.prototype.makeParam = function(methodName, param){
 	opt.$responseHook = param.ResponseHook;
 	opt.$highWaterMark = param.HighWaterMark;
 	
+	//If the method is setBucketCustomDomain, check the certificate params
+	if (methodName === customDomainCertificateMethod&&param.DomainBody) {
+		checkCustomDomainCertificateParams(param.DomainBody,this.log,methodName,opt)
+	}
+
 	if ('urlPath' in model){
 		urlPath += '?';
 		urlPath += model.urlPath;
@@ -12668,6 +13160,80 @@ function isMatchingPattern(host, pattern) {
 	return regex.test(host);
 }
 
+function isValidStringInKb(str) {
+	const byte = new TextEncoder().encode(str).length;
+	// we convert bytes to KB
+	const kb = byte / 1024;
+	return kb
+}
+
+function checkCustomDomainCertificateParams(params,log,methodName,opt) {
+	//Validate Name
+	if (!params.Name || typeof params.Name !== 'string') {
+		opt.err =  !params.Name ? 'Name should be defined!' : 'Name should be string!';
+		if(log.isLevelEnabled('warn')){
+			log.runLog('warn', methodName, opt.err);
+		}
+		return opt;
+	}
+	if (params.Name.length < 3 || params.Name.length > 63) {
+		opt.err =  'The length of the Name should be between 3 and 63!';
+		if(log.isLevelEnabled('warn')){
+			log.runLog('warn', methodName, opt.err);
+		}
+		return opt;
+
+	}
+
+	//Validate CertificateId
+	if (params.CertificateId !== undefined) {
+		if (typeof params.CertificateId !== 'string') {
+			opt.err =  'CertificateId should be string!';
+			if(log.isLevelEnabled('warn')){
+				log.runLog('warn', methodName, opt.err);
+			}
+			return opt;
+		}
+		if (params.CertificateId.length !== 16) {
+			opt.err =  'The length of the CertificateId should be exacly 16!';
+			if(log.isLevelEnabled('warn')){
+				log.runLog('warn', methodName, opt.err);
+			}
+			return opt;
+		}
+	}
+
+	//Validate Certificate
+	if (!params.Certificate || typeof params.Certificate !== 'string') {
+		opt.err =  !params.Certificate ? 'Certificate should be defined!' : 'Certificate should be string!';
+			if(log.isLevelEnabled('warn')){
+				log.runLog('warn', methodName, opt.err);
+			}
+			return opt;
+	}
+
+	//Validate CertificateChain
+	if (params.CertificateChain !== undefined) {
+
+		if (typeof params.CertificateChain !== 'string') {
+			opt.err =  'CertificateChain should be string!';
+			if(log.isLevelEnabled('warn')){
+				log.runLog('warn', methodName, opt.err);
+			}
+			return opt;
+		}
+	}
+
+	//Validate PrivateKey
+	if (!params.PrivateKey || typeof params.PrivateKey !== 'string') {
+		opt.err = !params.PrivateKey ? 'PrivateKey should be defined!' : 'PrivateKey should be string!';
+			if(log.isLevelEnabled('warn')){
+				log.runLog('warn', methodName, opt.err);
+			}
+			return opt;
+	}
+}
+
 Utils.prototype.shouldUseProxy = function(requestUrl) {
 	if (this.noProxyList.length === 0) {
 		return true
@@ -12675,20 +13241,37 @@ Utils.prototype.shouldUseProxy = function(requestUrl) {
 	return !this.noProxyList.some(pattern => isMatchingPattern(requestUrl, pattern));
 }
 
-Utils.prototype.makeRequest = function(methodName, opt, retryCount, bc){
+Utils.prototype.makeRequest = async function (methodName, opt, retryCount, bc) {
+	if (this.is_shadow_client) {
+		try {
+			await this.waitForCloudAllianceGetsReady();
+			await this.checkKeysExpiredAndRefresh()
+		} catch (error) {
+			return bc(error);
+		}
+	}
+
 	let log = this.log;
 	let body = opt.xml;
 	let readable = body instanceof streamLib.Readable;
 	let signatureContext = opt.signatureContext || this.signatureContext;
 	let nowDate = new Date();
 	opt.headers.Date = nowDate.toUTCString();
-	
 	delete opt.headers.Authorization;// retry bug fix
 	
 	let ex = opt.headers;
 	let path = (opt.requestUri ? opt.requestUri : opt.uri) + opt.urlPath;
 	let method = opt.method;
-
+	
+	if (methodName === customDomainCertificateMethod && opt.xml !== undefined) {
+		if (isValidStringInKb(opt.xml) > 40) {
+			const err =  'Total XML body of Certificate should be equal or less than 40KB!';
+			if(log.isLevelEnabled('warn')){
+				log.runLog('warn', methodName, opt.err);
+			}
+			return bc(err);
+		}
+	}
 	if(this.ak && this.sk && methodName !== negotiateMethod){
 		if(this.securityToken){
 			opt.headers[signatureContext.headerPrefix + 'security-token'] = this.securityToken;
@@ -12705,7 +13288,6 @@ Utils.prototype.makeRequest = function(methodName, opt, retryCount, bc){
 	if(log.isLevelEnabled('info')){
 		log.runLog('info', methodName, 'prepare request parameters ok, then start to send request to service');
 	}
-	
 	if(log.isLevelEnabled('debug')){
 		let header_msg = {};
 		for (let key in ex){
@@ -12744,6 +13326,7 @@ Utils.prototype.makeRequest = function(methodName, opt, retryCount, bc){
 		headers : ex,
 		highWaterMark : opt.$highWaterMark || null,
 	};
+
 	let requestPath = reopt.host + ':' + reopt.port + reopt.path;
 	
 	let start = nowDate.getTime();
@@ -13352,9 +13935,8 @@ Utils.prototype.createPostSignatureSync = function(param){
 		policy.push('["starts-with", "$key", ""],');
 	}
 	
-	policy.push(']}');
-	
-	let originPolicy = policy.join('');
+	// 去除末尾的逗号
+	let originPolicy = policy.join('').replace(/,$/, '') + ']}';
 	
 	policy = Buffer.from(originPolicy,'utf8').toString('base64');
 	
@@ -13479,7 +14061,7 @@ module.exports = Utils;
 /***/ }),
 
 /***/ 5755:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module) => {
 
 /**
  * Copyright 2019 Huawei Technologies Co.,Ltd.
@@ -13495,8 +14077,6 @@ module.exports = Utils;
  * specific language governing permissions and limitations under the License.
  *
  */
-
-const baseModelOperations = __nccwpck_require__(9408)
 
 const owner = {
 	'type' : 'object',
@@ -13994,8 +14574,56 @@ const bucketEncryptionRule = {
 	}
 };
 
+const PublicAccessBlockBody = {
+    'BlockPublicAcls' : {
+        'location' : 'xml',
+        'sentAs' : 'BlockPublicAcls',
+    },
+    'IgnorePublicAcls' : {
+        'location' : 'xml',
+        'sentAs' : 'IgnorePublicAcls',
+    },
+    'BlockPublicPolicy' : {
+        'location' : 'xml',
+        'sentAs' : 'BlockPublicPolicy',
+    },
+    'RestrictPublicBuckets' : {
+        'location' : 'xml',
+        'sentAs' : 'RestrictPublicBuckets',
+    }
+};
+
+const CustomDomainCertificateConfig = {
+	'type': 'object',
+	'location': 'xml',
+	'required': false,
+
+	'sentAs': 'customDomainCertificateConfig',
+	'parameters': {
+
+		'Name': {
+			'type': 'string',
+			'required': true
+		},
+		'CertificateId': {
+			'type':'string',
+		},
+		'Certificate': {
+			'type': 'string',
+			'required': true,
+		},
+		'CertificateChain': {
+			'type': 'string',
+		},
+		'PrivateKey': {
+			'type': 'string',
+			'required': true,
+		}
+			
+	}
+}
+
 const operations = {
-	...baseModelOperations,
 	'CreateBucket' : {
 		'httpMethod' : 'PUT',
 		'data' : {
@@ -14067,6 +14695,93 @@ const operations = {
 		}
 	},
 	
+    'ListBuckets' : {
+		'httpMethod' : 'GET',
+		'parameters' : {
+			'QueryLocation' : {
+				'location' : 'header',
+				'sentAs' : 'location',
+				'type' : 'boolean',
+				'withPrefix' : true,
+			},
+			'BucketType': {
+				'location': 'header',
+				'sentAs': 'bucket-type',
+				'withPrefix': true
+			},
+			'Marker' : {
+				'location' : 'urlPath',
+				'sentAs' : 'marker',
+			},
+			'MaxKeys' : {
+				'type' : 'number',
+				'location' : 'urlPath',
+				'sentAs' : 'max-keys',
+			},
+		}
+	},
+
+	'ListBucketsOutput' : {
+		'data' : {
+			'type' : 'xml',
+			'xmlRoot' : 'ListAllMyBucketsResult',
+		},
+		'parameters' : {
+			'Owner' : {
+				'type' : 'object',
+				'location' : 'xml',
+				'sentAs' : 'Owner',
+				'parameters' : {
+					'ID' : {
+						'sentAs' : 'ID',
+					},
+					'Name' : {
+						'sentAs' : 'DisplayName',
+					},
+				},
+			},
+			'Marker' : {
+				'location' : 'xml',
+				'sentAs' : 'Marker',
+			},
+			'IsTruncated' : {
+				'location' : 'xml',
+				'sentAs' : 'IsTruncated',
+			},
+			'NextMarker' : {
+				'location' : 'xml',
+				'sentAs' : 'NextMarker',
+			},
+			'MaxKeys' : {
+				'location' : 'xml',
+				'sentAs' : 'MaxKeys',
+			},
+			'Buckets' : {
+				'type' : 'array',
+				'location' : 'xml',
+				'wrapper' : 'Buckets',
+				'sentAs' : 'Bucket',
+				'items' : {
+					'type' : 'object',
+					'parameters' : {
+						'BucketName' : {
+							'sentAs' : 'Name',
+						},
+						'CreationDate' : {
+							'sentAs' : 'CreationDate'
+						},
+						'Location' : {
+							'sentAs' : 'Location'
+						},
+						'BucketType' : {
+							'sentAs' : 'BucketType'
+						}
+					},
+				},
+			},
+		},
+	},
+
 	'HeadBucket' : {
 		'httpMethod' : 'HEAD',
 		'parameters' : {
@@ -15481,6 +16196,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
 				'withPrefix' : true,
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -15530,6 +16250,11 @@ const operations = {
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
 				'withPrefix' : true,
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
 			},
 			'SseC' :{
 				'location' : 'header',
@@ -15667,6 +16392,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -15741,6 +16471,11 @@ const operations = {
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
 			},
 			'SseKmsKeyObs' :{
 				'location' : 'header',
@@ -15879,6 +16614,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -15927,6 +16667,11 @@ const operations = {
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-kms-key-id',
 				'withPrefix' : true,
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
 			},
 			'SseC' :{
 				'location' : 'header',
@@ -16156,6 +16901,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
 				'withPrefix' : true
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -16305,6 +17055,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
 				'withPrefix' : true
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -16366,6 +17121,11 @@ const operations = {
 			'SseKmsKey' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
+				'withPrefix' : true
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
 				'withPrefix' : true
 			},
 			'SseC' :{
@@ -17111,6 +17871,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
 				'withPrefix' : true,
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -17161,6 +17926,11 @@ const operations = {
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
 				'withPrefix' : true,
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
 			},
 			'SseC' :{
 				'location' : 'header',
@@ -17376,6 +18146,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
 				'withPrefix' : true
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -17581,6 +18356,11 @@ const operations = {
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
 				'withPrefix' : true
 			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
+				'withPrefix' : true
+			},
 			'SseC' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-customer-algorithm',
@@ -17700,6 +18480,11 @@ const operations = {
 			'SseKmsKey' :{
 				'location' : 'header',
 				'sentAs' : 'server-side-encryption-aws-kms-key-id',
+				'withPrefix' : true
+			},
+			'SseKmsProjectId' :{
+				'location' : 'header',
+				'sentAs' : 'sse-kms-key-project-id',
 				'withPrefix' : true
 			},
 			'SseC' :{
@@ -17977,6 +18762,164 @@ const operations = {
 				'location': 'header',
 				'sentAs': 'request-payer',
 				'withPrefix': true
+			}
+		}
+	},
+	'PutBucketPublicAccessBlock' : {
+		'httpMethod' : 'PUT',
+		'urlPath' : 'publicAccessBlock',
+		'data' : {
+			'xmlRoot' : 'PublicAccessBlockConfiguration'
+		},
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+					'location' : 'uri'
+			},
+			...PublicAccessBlockBody
+		}
+	},
+	'GetBucketPublicAccessBlock' : {
+		'httpMethod' : 'GET',
+		'urlPath' : 'publicAccessBlock',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+					'location' : 'uri'
+			},
+		}
+	},
+	'GetBucketPublicAccessBlockOutput' : {
+		'data' : {
+			'type' : 'xml',
+			'xmlRoot' : 'PublicAccessBlockConfiguration'
+		},
+		"parameters": {
+			...PublicAccessBlockBody
+		}
+	},
+	'DeleteBucketPublicAccessBlock' : {
+		'httpMethod' : 'DELETE',
+		'urlPath' : 'publicAccessBlock',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+					'location' : 'uri'
+			},
+		}
+	},
+	'GetBucketPolicyPublicStatus' : {
+		'httpMethod' : 'GET',
+		'urlPath' : 'policyStatus',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+					'location' : 'uri'
+			},
+		}
+	},
+	'GetBucketPolicyPublicStatusOutput' : {
+		'data' : {
+			'type' : 'xml',
+			'xmlRoot' : 'PolicyStatus'
+		},
+		"parameters": {
+			'IsPublic' : {
+				'location' : 'xml',
+				'sentAs' : 'IsPublic',
+			}, 
+		}
+	},
+	'GetBucketPublicStatus' : {
+		'httpMethod' : 'GET',
+		'urlPath' : 'bucketStatus',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+				'location' : 'uri'
+			},
+		}
+	},
+	'GetBucketPublicStatusOutput' : {
+		'data' : {
+			'type' : 'xml',
+			'xmlRoot' : 'BucketStatus'
+		},
+		"parameters": {
+			'IsPublic' : {
+				'location' : 'xml',
+				'sentAs' : 'IsPublic',
+			}, 
+		}
+	},
+	'SetBucketCustomDomain' : {
+		'httpMethod' : 'PUT',
+		// 'urlPath' : 'customdomain',
+		'data' : {
+			'md5' : true
+		},
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+				'location': 'uri',
+			},
+			'DomainName' : {
+				'required': true,
+				'location': 'urlPath',
+				'sentAs':'customdomain'
+			},
+			'DomainBody':CustomDomainCertificateConfig
+		}
+	},
+	'GetBucketCustomDomain' : {
+		'httpMethod' : 'GET',
+		'urlPath' : 'customdomain',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+				'location': 'uri',
+				'type': 'string'
+			},
+		}
+	},
+	'GetBucketCustomDomainOutput': {
+		'data': {
+			'type': 'xml',
+			'xmlRoot': 'ListBucketCustomDomainsResult'
+		},
+		'parameters': {
+			'Domains': {
+				'location': 'xml',
+				'sentAs': 'Domains',
+				'type': 'array',
+				'items': {
+					'type': 'object',
+					'parameters': {
+						'DomainName': {
+							'sentAs': 'DomainName',
+						},
+						'Value': {
+							'sentAs': 'CreateTime',
+						},
+						'CertificateId': {
+							'sentAs': 'CertificateId',
+						}
+					},
+				}
+			}
+		}
+	},
+	'DeleteBucketCustomDomain' : {
+		'httpMethod' : 'DELETE',
+		"parameters": {
+			'Bucket' : {
+				'required' : true,
+				'location' : 'uri'
+			},
+			'DomainName': {
+				'required': true,
+				'location': 'urlPath',
+				'sentAs':'customdomain'
 			}
 		}
 	}

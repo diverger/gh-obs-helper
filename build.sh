@@ -42,10 +42,10 @@ if [ ! -d "node_modules" ]; then
     print_info "Installing dependencies..."
     npm install
 else
-    # Check if package-lock.json is in sync with package.json
+    # Quick check: compare package.json and package-lock.json modification times
     print_info "Checking if dependencies are up to date..."
-    if ! npm ci --dry-run >/dev/null 2>&1; then
-        print_warning "Lock file is out of sync with package.json"
+    if [ "package.json" -nt "package-lock.json" ] || [ "package.json" -nt "node_modules/.package-lock.json" ] 2>/dev/null; then
+        print_warning "Package files appear out of sync"
         print_info "Updating dependencies..."
         npm install
     else
@@ -55,7 +55,7 @@ fi
 
 # Run TypeScript check
 print_info "Running TypeScript compilation check..."
-if npm run check; then
+if npx tsc --noEmit; then
     print_success "TypeScript compilation check passed"
 else
     print_error "TypeScript compilation check failed"
