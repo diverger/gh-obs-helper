@@ -26,7 +26,7 @@
     "@actions/github": "^6.0.1",
     "esdk-obs-nodejs": "^3.25.6",
     "glob": "^11.0.3",
-    "p-limit": "^6.2.0"
+    "p-limit": "^7.1.0"
   },
 
   "devDependencies": {
