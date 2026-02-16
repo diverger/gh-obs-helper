@@ -32,7 +32,7 @@ function Write-Success {
     Write-Host "$icon $Message" -ForegroundColor Green
 }
 
-function Write-Warning {
+function Write-WarningMessage {
     param([string]$Message)
     $icon = if ($supportsUnicode) { "⚠️" } else { "[!]" }
     Write-Host "$icon  $Message" -ForegroundColor Yellow
@@ -62,11 +62,9 @@ function Archive-ReleaseNotes {
     Write-Success "Created backup of current release notes"
 
     # Extract current release notes (everything before the second release header)
-    $content = Get-Content "RELEASE_NOTES.md" -Raw
     $lines = Get-Content "RELEASE_NOTES.md"
     $releaseCount = 0
     $currentReleaseLines = @()
-    $rocketIcon = if ($supportsUnicode) { "🚀" } else { "" }
 
     foreach ($line in $lines) {
         if ($line -match "^## .*GH OBS Helper Release") {
@@ -80,10 +78,20 @@ function Archive-ReleaseNotes {
 
     # Append to archive (prepend to keep newest first)
     if (Test-Path "RELEASE_NOTES_ARCHIVE.md") {
-        # Get the header from archive
+        # Get the header from archive (everything before first --- separator)
         $archiveLines = Get-Content "RELEASE_NOTES_ARCHIVE.md"
-        $newArchive = $archiveLines[0..2]
-        $newArchive += ""
+        $separatorIndex = 0
+        for ($i = 0; $i -lt $archiveLines.Length; $i++) {
+            if ($archiveLines[$i] -match "^---$") {
+                $separatorIndex = $i
+                break
+            }
+        }
+
+        $newArchive = @()
+        if ($separatorIndex -gt 0) {
+            $newArchive += $archiveLines[0..($separatorIndex - 1)]
+        }
         $newArchive += "---"
         $newArchive += ""
 
@@ -91,8 +99,10 @@ function Archive-ReleaseNotes {
         $newArchive += $currentReleaseLines[2..($currentReleaseLines.Length - 1)]
         $newArchive += ""
 
-        # Add rest of archive (skip header)
-        $newArchive += $archiveLines[4..($archiveLines.Length - 1)]
+        # Add rest of archive (skip header and first separator)
+        if ($separatorIndex -lt ($archiveLines.Length - 1)) {
+            $newArchive += $archiveLines[($separatorIndex + 1)..($archiveLines.Length - 1)]
+        }
 
         $newArchive | Set-Content "RELEASE_NOTES_ARCHIVE.md" -Encoding UTF8
     } else {
@@ -134,10 +144,10 @@ function Prepare-NewRelease {
                 $content = $content -replace '\[PREVIOUS\]', $previousVersion
                 Write-Info "Set previous version to: $previousVersion"
             } else {
-                Write-Warning "No previous version found, keeping [PREVIOUS] placeholder"
+                Write-WarningMessage "No previous version found, keeping [PREVIOUS] placeholder"
             }
         } catch {
-            Write-Warning "Could not retrieve git tags, keeping [PREVIOUS] placeholder"
+            Write-WarningMessage "Could not retrieve git tags, keeping [PREVIOUS] placeholder"
         }
 
         $content | Set-Content "RELEASE_NOTES.md" -Encoding UTF8 -NoNewline
@@ -160,14 +170,10 @@ function Update-PackageVersion {
         # Remove 'v' prefix if present
         $versionNumber = $NewVersion -replace '^v', ''
 
-        # Read package.json
-        $packageJson = Get-Content "package.json" -Raw | ConvertFrom-Json
-
-        # Update version
-        $packageJson.version = $versionNumber
-
-        # Write back to file with proper formatting
-        $packageJson | ConvertTo-Json -Depth 100 | Set-Content "package.json" -Encoding UTF8
+        # Read package.json and update version in-place to preserve formatting
+        $raw = Get-Content "package.json" -Raw
+        $raw = $raw -replace '("version"\s*:\s*")([^"]+)"', "`$1$versionNumber`""
+        $raw | Set-Content "package.json" -Encoding UTF8 -NoNewline
 
         Write-Success "Updated package.json version to $versionNumber"
     } else {
@@ -209,7 +215,7 @@ function Main {
     # Confirm
     $confirm = Read-Host "Continue with release preparation? (y/N)"
     if ($confirm -notmatch '^[Yy]$') {
-        Write-Warning "Release preparation cancelled"
+        Write-WarningMessage "Release preparation cancelled"
         exit 0
     }
 

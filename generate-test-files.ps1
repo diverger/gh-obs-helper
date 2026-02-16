@@ -170,7 +170,7 @@ echo "Testing shell script upload"
 
 # Create large test file (1MB) - only if it doesn't exist
 if (-not (Test-Path "test-files\large-file.bin")) {
-    $msg = if ($supportsUnicode) { "Creating large test file (1MB)..." } else { "Creating large test file (1MB)..." }
+    $msg = if ($supportsUnicode) { "📦 Creating large test file (1MB)..." } else { "Creating large test file (1MB)..." }
     Write-Host $msg -ForegroundColor Yellow
     $bytes = New-Object byte[] (1MB)
     $random = New-Object System.Random

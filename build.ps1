@@ -32,7 +32,7 @@ function Write-Success {
     Write-Host "$icon $Message" -ForegroundColor Green
 }
 
-function Write-Warning {
+function Write-WarningMessage {
     param([string]$Message)
     $icon = if ($supportsUnicode) { "⚠️" } else { "[!]" }
     Write-Host "$icon  $Message" -ForegroundColor Yellow
@@ -68,6 +68,11 @@ if (-not (Test-Path "node_modules")) {
     $nodeModulesLock = Get-Item "node_modules/.package-lock.json" -ErrorAction SilentlyContinue
 
     $needsUpdate = $false
+    # Update if lock files are missing
+    if (-not $packageLock -or -not $nodeModulesLock) {
+        $needsUpdate = $true
+    }
+    # Update if package.json is newer than lock files
     if ($packageLock -and $packageJson.LastWriteTime -gt $packageLock.LastWriteTime) {
         $needsUpdate = $true
     }
@@ -76,7 +81,7 @@ if (-not (Test-Path "node_modules")) {
     }
 
     if ($needsUpdate) {
-        Write-Warning "Package files appear out of sync"
+        Write-WarningMessage "Package files appear out of sync"
         Write-Info "Updating dependencies..."
         npm install
     } else {
