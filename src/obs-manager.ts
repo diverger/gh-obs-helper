@@ -20,9 +20,9 @@
 import ObsClient from 'esdk-obs-nodejs';
 import pLimit from 'p-limit';
 import * as path from 'path';
-import { ActionInputs, OBSConfig, FileOperation, ProcessedFile, OperationResult } from './types';
-import { FileManager } from './file-manager';
-import { logProgress, logSuccess, logError, logWarning } from './utils';
+import { ActionInputs, OBSConfig, FileOperation, ProcessedFile, OperationResult } from './types.js';
+import { FileManager } from './file-manager.js';
+import { logProgress, logSuccess, logError, logWarning } from './utils.js';
 import { createHash } from 'crypto';
 
 export class OBSManager {

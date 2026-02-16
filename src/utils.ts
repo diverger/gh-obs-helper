@@ -19,7 +19,7 @@
  */
 
 import * as core from '@actions/core';
-import { ActionInputs } from './types';
+import { ActionInputs } from './types.js';
 
 export function getInputs(): ActionInputs {
   const parseStringArray = (input: string): string[] => {

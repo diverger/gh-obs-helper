@@ -236,7 +236,7 @@ uses: your-username/gh-obs-helper@v1
 |------|---------|
 | `action.yml` | Defines action inputs/outputs |
 | `src/index.ts` | Main action logic |
-| `dist/index.js` | Compiled JavaScript (auto-generated) |
+| `dist/index.mjs` | Compiled JavaScript ESM (auto-generated) |
 | `package.json` | Dependencies and build scripts |
 | `build.sh` | Local build helper script |
 | **`prepare-release.sh`** | **Automated release management** |
@@ -339,6 +339,6 @@ npx tsc --noEmit
 ```
 
 ### Action Not Working
-1. Check `dist/index.js` exists and is recent
+1. Check `dist/index.mjs` exists and is recent
 2. Verify `action.yml` parameter names match code
 3. Test with dry_run: true first
