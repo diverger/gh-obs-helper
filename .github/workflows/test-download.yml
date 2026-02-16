@@ -214,7 +214,7 @@ jobs:
           cat download-summary.md
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: download-test-results
           path: |
