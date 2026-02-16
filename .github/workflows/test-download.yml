@@ -3,6 +3,16 @@ name: Test Download Functionality
 on:
   workflow_dispatch:
     inputs:
+      test_scenario:
+        description: 'Test scenario to run'
+        required: false
+        type: choice
+        options:
+          - 'single-file'
+          - 'multiple-files'
+          - 'directory'
+          - 'wildcard-download'
+        default: 'single-file'
       bucket:
         description: 'OBS bucket name for testing'
         required: true
@@ -31,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -68,7 +78,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -204,13 +214,15 @@ jobs:
           cat download-summary.md
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: download-test-results
           path: |
             downloads/
             download-summary.md
           retention-days: 7
+
+      - name: Test Single File Download
         if: inputs.test_scenario == 'single-file'
         uses: ./
         with:
@@ -256,8 +268,8 @@ jobs:
         if: inputs.test_scenario == 'wildcard-download'
         uses: ./
         with:
-          access_key: ${{ env.OBS_KEY_ID }}
-          secret_key: ${{ env.OBS_KEY_SECRET }}
+          access_key: ${{ env.OBS_ACCESS_KEY }}
+          secret_key: ${{ env.OBS_SECRET_KEY }}
           region: ${{ env.OBS_REGION }}
           bucket: ${{ env.OBS_BUCKET }}
           operation: download

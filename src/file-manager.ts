@@ -24,8 +24,8 @@ import { stat } from 'fs/promises';
 import path from 'path';
 import { createReadStream } from 'fs';
 import { createHash } from 'crypto';
-import { ActionInputs, FileOperation } from './types';
-import { logProgress, logError } from './utils';
+import { ActionInputs, FileOperation } from './types.js';
+import { logProgress, logError } from './utils.js';
 
 export class FileManager {
   private static readonly LARGE_FILE_THRESHOLD = 100 * 1024 * 1024; // 100MB threshold

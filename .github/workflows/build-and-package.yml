@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -45,8 +45,8 @@ jobs:
 
       - name: Verify build output
         run: |
-          if [ ! -f "dist/index.js" ]; then
-            echo "❌ Build failed: dist/index.js not found"
+          if [ ! -f "dist/index.mjs" ]; then
+            echo "❌ Build failed: dist/index.mjs not found"
             exit 1
           fi
 
@@ -80,7 +80,7 @@ jobs:
           git push
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: compiled-action-${{ github.sha }}
           path: |
@@ -97,10 +97,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download built action
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: compiled-action-${{ github.sha }}
 
@@ -128,7 +128,7 @@ jobs:
           if [ "${{ steps.test-action.outcome }}" = "success" ]; then
             echo "✅ Built action test completed successfully"
             echo "🎯 Action is ready for use"
-              else
+          else
             echo "❌ Built action test failed"
             echo "🚫 Action needs debugging"
             exit 1

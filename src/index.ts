@@ -19,8 +19,8 @@
  */
 
 import * as core from '@actions/core';
-import { getInputs, setOutputs, logError, logSuccess } from './utils';
-import { OBSManager } from './obs-manager';
+import { getInputs, setOutputs, logError, logSuccess } from './utils.js';
+import { OBSManager } from './obs-manager.js';
 
 async function main(): Promise<void> {
   let obsManager: OBSManager | null = null;
@@ -89,11 +89,9 @@ function formatBytes(bytes: number): string {
 }
 
 // Run the action
-if (require.main === module) {
-  main().catch(error => {
-    console.error('Unhandled error:', error);
-    process.exit(1);
-  });
-}
+main().catch(error => {
+  console.error('Unhandled error:', error);
+  process.exit(1);
+});
 
 export { main };
