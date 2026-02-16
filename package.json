@@ -2,8 +2,7 @@
   "name": "gh-obs-helper",
   "version": "1.2.0",
   "description": "GitHub Action for Huawei Cloud OBS operations with unlimited file support and wildcard patterns",
-  "type": "module",
-  "main": "dist/index.mjs",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsup",
     "test": "jest",
