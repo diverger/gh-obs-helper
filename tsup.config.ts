@@ -8,7 +8,7 @@ export default defineConfig({
   minify: true,
   clean: true,
   platform: 'node',
-  target: 'node20',
+  target: 'node24',
   // Bundle all dependencies
   noExternal: [/.*/],
   // Ensure proper ESM output

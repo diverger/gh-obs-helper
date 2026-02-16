@@ -91,5 +91,5 @@ outputs:
     description: 'URL of the first uploaded file (for single file uploads)'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.mjs'
